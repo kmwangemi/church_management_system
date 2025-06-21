@@ -6,7 +6,7 @@ import Link from "next/link"
 
 export default function Dashboard() {
   const stats = [
-    { title: "Total Members 1234", value: "1,247", change: "+12%", icon: Users, color: "text-blue-600" },
+    { title: "Total Members", value: "1,247", change: "+12%", icon: Users, color: "text-blue-600" },
     { title: "This Week's Attendance", value: "892", change: "+5%", icon: UserCheck, color: "text-green-600" },
     { title: "Monthly Giving", value: "$45,230", change: "+18%", icon: DollarSign, color: "text-emerald-600" },
     { title: "Active Events", value: "8", change: "+2", icon: Calendar, color: "text-purple-600" },
@@ -35,14 +35,18 @@ export default function Dashboard() {
           <p className="text-muted-foreground">Welcome back! Here's what's happening at your church.</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Bell className="h-4 w-4 mr-2" />
-            Notifications
-          </Button>
-          <Button size="sm">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            View Reports
-          </Button>
+          <Link href="/notifications">
+            <Button variant="outline" size="sm">
+              <Bell className="h-4 w-4 mr-2" />
+              Notifications
+            </Button>
+          </Link>
+          <Link href="/reports/view">
+            <Button size="sm">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              View Reports
+            </Button>
+          </Link>
         </div>
       </div>
 

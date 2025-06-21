@@ -3,7 +3,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import {
   BarChart,
@@ -20,7 +19,9 @@ import {
   AreaChart,
   Area,
 } from "recharts"
-import { Download, TrendingUp, Users, DollarSign, Calendar } from "lucide-react"
+import { TrendingUp, Users, DollarSign, Calendar } from "lucide-react"
+import Link from "next/link"
+import { BarChart3 } from "lucide-react"
 
 export default function ReportsPage() {
   const attendanceData = [
@@ -79,293 +80,285 @@ export default function ReportsPage() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto py-10">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Reports & Analytics</h1>
-          <p className="text-muted-foreground">Comprehensive insights into church growth and activities</p>
+          <p className="text-muted-foreground">Comprehensive insights into your church operations</p>
         </div>
-        <div className="flex space-x-2">
-          <Select defaultValue="2024">
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="2024">2024</SelectItem>
-              <SelectItem value="2023">2023</SelectItem>
-              <SelectItem value="2022">2022</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export All
+        <Link href="/reports/view">
+          <Button>
+            <BarChart3 className="h-4 w-4 mr-2" />
+            View All Reports
           </Button>
+        </Link>
+      </div>
+
+      <div className="space-y-6">
+        {/* Key Metrics */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Avg. Attendance</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">485</div>
+              <p className="text-xs text-muted-foreground">+8% from last year</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Giving</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">$248,500</div>
+              <p className="text-xs text-muted-foreground">+15% from last year</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Member Growth</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">+67</div>
+              <p className="text-xs text-muted-foreground">New members this year</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Events Held</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">156</div>
+              <p className="text-xs text-muted-foreground">This year</p>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Attendance</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">485</div>
-            <p className="text-xs text-muted-foreground">+8% from last year</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Giving</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$248,500</div>
-            <p className="text-xs text-muted-foreground">+15% from last year</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Member Growth</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+67</div>
-            <p className="text-xs text-muted-foreground">New members this year</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Events Held</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">156</div>
-            <p className="text-xs text-muted-foreground">This year</p>
-          </CardContent>
-        </Card>
-      </div>
+        <Tabs defaultValue="attendance" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="attendance">Attendance</TabsTrigger>
+            <TabsTrigger value="giving">Giving</TabsTrigger>
+            <TabsTrigger value="growth">Growth</TabsTrigger>
+            <TabsTrigger value="departments">Departments</TabsTrigger>
+            <TabsTrigger value="events">Events</TabsTrigger>
+          </TabsList>
 
-      <Tabs defaultValue="attendance" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="attendance">Attendance</TabsTrigger>
-          <TabsTrigger value="giving">Giving</TabsTrigger>
-          <TabsTrigger value="growth">Growth</TabsTrigger>
-          <TabsTrigger value="departments">Departments</TabsTrigger>
-          <TabsTrigger value="events">Events</TabsTrigger>
-        </TabsList>
+          <TabsContent value="attendance" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Monthly Attendance Trends</CardTitle>
+                  <CardDescription>Attendance vs target over the year</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer
+                    config={{
+                      attendance: { label: "Attendance", color: "#8884d8" },
+                      target: { label: "Target", color: "#82ca9d" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={attendanceData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Line type="monotone" dataKey="attendance" stroke="#8884d8" strokeWidth={2} />
+                        <Line type="monotone" dataKey="target" stroke="#82ca9d" strokeWidth={2} strokeDasharray="5 5" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
 
-        <TabsContent value="attendance" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Event Attendance Rates</CardTitle>
+                  <CardDescription>Average attendance by event type</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer
+                    config={{
+                      attendance: { label: "Attendance", color: "#8884d8" },
+                      capacity: { label: "Capacity", color: "#82ca9d" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={eventAttendance} layout="horizontal">
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" />
+                        <YAxis dataKey="event" type="category" width={100} />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar dataKey="avgAttendance" fill="#8884d8" />
+                        <Bar dataKey="capacity" fill="#82ca9d" opacity={0.3} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="giving" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Monthly Attendance Trends</CardTitle>
-                <CardDescription>Attendance vs target over the year</CardDescription>
+                <CardTitle>Giving Trends</CardTitle>
+                <CardDescription>Monthly giving patterns throughout the year</CardDescription>
               </CardHeader>
               <CardContent>
                 <ChartContainer
                   config={{
-                    attendance: { label: "Attendance", color: "#8884d8" },
-                    target: { label: "Target", color: "#82ca9d" },
+                    amount: { label: "Amount", color: "#8884d8" },
                   }}
-                  className="h-[300px]"
+                  className="h-[400px]"
                 >
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={attendanceData}>
+                    <AreaChart data={givingTrends}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Line type="monotone" dataKey="attendance" stroke="#8884d8" strokeWidth={2} />
-                      <Line type="monotone" dataKey="target" stroke="#82ca9d" strokeWidth={2} strokeDasharray="5 5" />
-                    </LineChart>
+                      <Area type="monotone" dataKey="amount" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} />
+                    </AreaChart>
                   </ResponsiveContainer>
                 </ChartContainer>
               </CardContent>
             </Card>
+          </TabsContent>
 
+          <TabsContent value="growth" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Event Attendance Rates</CardTitle>
-                <CardDescription>Average attendance by event type</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer
-                  config={{
-                    attendance: { label: "Attendance", color: "#8884d8" },
-                    capacity: { label: "Capacity", color: "#82ca9d" },
-                  }}
-                  className="h-[300px]"
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={eventAttendance} layout="horizontal">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis dataKey="event" type="category" width={100} />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="avgAttendance" fill="#8884d8" />
-                      <Bar dataKey="capacity" fill="#82ca9d" opacity={0.3} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="giving" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Giving Trends</CardTitle>
-              <CardDescription>Monthly giving patterns throughout the year</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={{
-                  amount: { label: "Amount", color: "#8884d8" },
-                }}
-                className="h-[400px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={givingTrends}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Area type="monotone" dataKey="amount" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="growth" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Membership Growth</CardTitle>
-              <CardDescription>Member additions and departures over time</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={{
-                  members: { label: "Total Members", color: "#8884d8" },
-                  newMembers: { label: "New Members", color: "#82ca9d" },
-                  leftMembers: { label: "Left Members", color: "#ffc658" },
-                }}
-                className="h-[400px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={membershipGrowth}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="newMembers" fill="#82ca9d" />
-                    <Bar dataKey="leftMembers" fill="#ffc658" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="departments" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Department Membership</CardTitle>
-                <CardDescription>Total members by department</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer
-                  config={{
-                    members: { label: "Members", color: "#8884d8" },
-                  }}
-                  className="h-[300px]"
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={departmentStats}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="members"
-                        label={({ name, members }) => `${name}: ${members}`}
-                      >
-                        {departmentStats.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Department Activity</CardTitle>
-                <CardDescription>Active vs total members by department</CardDescription>
+                <CardTitle>Membership Growth</CardTitle>
+                <CardDescription>Member additions and departures over time</CardDescription>
               </CardHeader>
               <CardContent>
                 <ChartContainer
                   config={{
                     members: { label: "Total Members", color: "#8884d8" },
-                    active: { label: "Active Members", color: "#82ca9d" },
+                    newMembers: { label: "New Members", color: "#82ca9d" },
+                    leftMembers: { label: "Left Members", color: "#ffc658" },
                   }}
-                  className="h-[300px]"
+                  className="h-[400px]"
                 >
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={departmentStats}>
+                    <BarChart data={membershipGrowth}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
+                      <XAxis dataKey="month" />
                       <YAxis />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="members" fill="#8884d8" />
-                      <Bar dataKey="active" fill="#82ca9d" />
+                      <Bar dataKey="newMembers" fill="#82ca9d" />
+                      <Bar dataKey="leftMembers" fill="#ffc658" />
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="events" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Event Performance</CardTitle>
-              <CardDescription>Attendance rates across different event types</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {eventAttendance.map((event, index) => (
-                  <div key={index} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{event.event}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {event.avgAttendance}/{event.capacity} (
-                        {Math.round((event.avgAttendance / event.capacity) * 100)}%)
-                      </span>
+          <TabsContent value="departments" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Department Membership</CardTitle>
+                  <CardDescription>Total members by department</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer
+                    config={{
+                      members: { label: "Members", color: "#8884d8" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={departmentStats}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="members"
+                          label={({ name, members }) => `${name}: ${members}`}
+                        >
+                          {departmentStats.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Department Activity</CardTitle>
+                  <CardDescription>Active vs total members by department</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer
+                    config={{
+                      members: { label: "Total Members", color: "#8884d8" },
+                      active: { label: "Active Members", color: "#82ca9d" },
+                    }}
+                    className="h-[300px]"
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={departmentStats}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar dataKey="members" fill="#8884d8" />
+                        <Bar dataKey="active" fill="#82ca9d" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="events" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Event Performance</CardTitle>
+                <CardDescription>Attendance rates across different event types</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {eventAttendance.map((event, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{event.event}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {event.avgAttendance}/{event.capacity} (
+                          {Math.round((event.avgAttendance / event.capacity) * 100)}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{ width: `${(event.avgAttendance / event.capacity) * 100}%` }}
+                        ></div>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${(event.avgAttendance / event.capacity) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   )
 }

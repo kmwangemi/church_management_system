@@ -19,7 +19,13 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Search, MapPin, Users, Building2, UserCheck } from "lucide-react"
+import { Plus, Search, MapPin, Users, Building2, UserCheck, Eye } from "lucide-react"
+import Link from "next/link"
+
+const branchesData = [
+  { id: "1", name: "Main Branch", location: "New York" },
+  { id: "2", name: "Secondary Branch", location: "Los Angeles" },
+]
 
 export default function BranchesPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -375,6 +381,17 @@ export default function BranchesPage() {
                       </div>
                     </CardContent>
                   </Card>
+                ))}
+                {branchesData.map((branch) => (
+                  <li key={branch.id}>
+                    {branch.name} - {branch.location}
+                    <Link href={`/branches/${branch.id}`}>
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4 mr-1" />
+                        View Details
+                      </Button>
+                    </Link>
+                  </li>
                 ))}
               </div>
             </CardContent>

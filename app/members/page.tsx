@@ -18,57 +18,61 @@ import {
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, Search, Filter, UserPlus, Mail, Phone } from "lucide-react"
+import { Plus, Search, Filter, UserPlus, Mail, Phone, Edit, Eye } from "lucide-react"
+import Link from "next/link"
+
+const members = [
+  {
+    id: 1,
+    name: "Sarah Johnson",
+    email: "sarah@email.com",
+    phone: "+1234567890",
+    role: "Member",
+    department: "Choir",
+    joinDate: "2023-01-15",
+    status: "Active",
+    avatar: "/placeholder.svg?height=40&width=40",
+  },
+  {
+    id: 2,
+    name: "Michael Brown",
+    email: "michael@email.com",
+    phone: "+1234567891",
+    role: "Finance Officer",
+    department: "Finance",
+    joinDate: "2022-06-20",
+    status: "Active",
+    avatar: "/placeholder.svg?height=40&width=40",
+  },
+  {
+    id: 3,
+    name: "Emily Davis",
+    email: "emily@email.com",
+    phone: "+1234567892",
+    role: "Pastor",
+    department: "Leadership",
+    joinDate: "2020-03-10",
+    status: "Active",
+    avatar: "/placeholder.svg?height=40&width=40",
+  },
+  {
+    id: 4,
+    name: "David Wilson",
+    email: "david@email.com",
+    phone: "+1234567893",
+    role: "Member",
+    department: "Youth",
+    joinDate: "2023-08-05",
+    status: "Active",
+    avatar: "/placeholder.svg?height=40&width=40",
+  },
+  { id: "5", name: "John Doe", email: "john.doe@example.com" },
+  { id: "6", name: "Jane Smith", email: "jane.smith@example.com" },
+  { id: "7", name: "Peter Jones", email: "peter.jones@example.com" },
+]
 
 export default function MembersPage() {
   const [searchTerm, setSearchTerm] = useState("")
-
-  const members = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      email: "sarah@email.com",
-      phone: "+1234567890",
-      role: "Member",
-      department: "Choir",
-      joinDate: "2023-01-15",
-      status: "Active",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 2,
-      name: "Michael Brown",
-      email: "michael@email.com",
-      phone: "+1234567891",
-      role: "Finance Officer",
-      department: "Finance",
-      joinDate: "2022-06-20",
-      status: "Active",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 3,
-      name: "Emily Davis",
-      email: "emily@email.com",
-      phone: "+1234567892",
-      role: "Pastor",
-      department: "Leadership",
-      joinDate: "2020-03-10",
-      status: "Active",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 4,
-      name: "David Wilson",
-      email: "david@email.com",
-      phone: "+1234567893",
-      role: "Member",
-      department: "Youth",
-      joinDate: "2023-08-05",
-      status: "Active",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-  ]
 
   const filteredMembers = members.filter(
     (member) =>
@@ -288,9 +292,20 @@ export default function MembersPage() {
                     <Badge variant="secondary">{member.status}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm">
-                      Edit
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Link href={`/members/${member.id}`}>
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                      </Link>
+                      <Link href={`/members/edit/${member.id}`}>
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                      </Link>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

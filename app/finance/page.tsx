@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
-import { DollarSign, TrendingUp, CreditCard, Smartphone, Download, Plus } from "lucide-react"
+import { DollarSign, TrendingUp, CreditCard, Smartphone, Download, Plus, Settings } from "lucide-react"
+import Link from "next/link"
 
 export default function FinancePage() {
   const monthlyData = [
@@ -106,10 +107,18 @@ export default function FinancePage() {
             <Download className="h-4 w-4 mr-2" />
             Export Report
           </Button>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Record Donation
-          </Button>
+          <Link href="/finance/record-donation">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Record Donation
+            </Button>
+          </Link>
+          <Link href="/finance/payment-methods">
+            <Button variant="outline">
+              <Settings className="h-4 w-4 mr-2" />
+              Payment Methods
+            </Button>
+          </Link>
         </div>
       </div>
 
