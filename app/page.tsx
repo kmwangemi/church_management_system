@@ -6,7 +6,7 @@ import Link from "next/link"
 
 export default function Dashboard() {
   const stats = [
-    { title: "Total Members", value: "1,247", change: "+12%", icon: Users, color: "text-blue-600" },
+    { title: "Total Members 1234", value: "1,247", change: "+12%", icon: Users, color: "text-blue-600" },
     { title: "This Week's Attendance", value: "892", change: "+5%", icon: UserCheck, color: "text-green-600" },
     { title: "Monthly Giving", value: "$45,230", change: "+18%", icon: DollarSign, color: "text-emerald-600" },
     { title: "Active Events", value: "8", change: "+2", icon: Calendar, color: "text-purple-600" },
