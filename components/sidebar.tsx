@@ -19,6 +19,8 @@ import {
   Settings,
   Church,
   UserPlus,
+  Gift,
+  Megaphone,
 } from "lucide-react"
 
 const navigation = [
@@ -34,6 +36,9 @@ const navigation = [
   { name: "Volunteers", href: "/volunteers", icon: UserCheck },
   { name: "Prayer Requests", href: "/prayer", icon: Heart },
   { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Small Groups", href: "/groups", icon: Users },
+  { name: "Contributions", href: "/contributions", icon: Gift },
+  { name: "Announcements", href: "/announcements", icon: Megaphone },
 ]
 
 export function Sidebar() {
