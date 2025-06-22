@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Bell, Search, Menu, Sun, Moon } from "lucide-react"
 import { useTheme } from "next-themes"
+import Link from "next/link"
 
 export function Header() {
   const { setTheme, theme } = useTheme()
@@ -36,10 +37,12 @@ export function Header() {
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           </Button>
 
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell className="h-4 w-4" />
-            <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full text-xs"></span>
-          </Button>
+          <Link href="/notifications">
+            <Button variant="ghost" size="sm" className="relative">
+              <Bell className="h-4 w-4" />
+              <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full text-xs"></span>
+            </Button>
+          </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

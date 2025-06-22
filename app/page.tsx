@@ -1,159 +1,174 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Users, Calendar, DollarSign, TrendingUp, MessageSquare, UserCheck, Bell, BarChart3 } from "lucide-react"
-import Link from "next/link"
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  BarChart3,
+  Calendar,
+  Church,
+  Heart,
+  Shield,
+  Users,
+} from 'lucide-react';
+import Link from 'next/link';
 
-export default function Dashboard() {
-  const stats = [
-    { title: "Total Members 1234", value: "1,247", change: "+12%", icon: Users, color: "text-blue-600" },
-    { title: "This Week's Attendance", value: "892", change: "+5%", icon: UserCheck, color: "text-green-600" },
-    { title: "Monthly Giving", value: "$45,230", change: "+18%", icon: DollarSign, color: "text-emerald-600" },
-    { title: "Active Events", value: "8", change: "+2", icon: Calendar, color: "text-purple-600" },
-  ]
-
-  const recentActivities = [
-    { type: "New Member", description: "Sarah Johnson joined the church", time: "2 hours ago", badge: "Member" },
-    { type: "Donation", description: "Anonymous donation of $500", time: "4 hours ago", badge: "Finance" },
-    { type: "Event", description: "Youth Meeting scheduled for Friday", time: "6 hours ago", badge: "Event" },
-    { type: "Prayer Request", description: "New prayer request submitted", time: "8 hours ago", badge: "Prayer" },
-  ]
-
-  const upcomingEvents = [
-    { title: "Sunday Service", date: "Dec 22, 2024", time: "9:00 AM", attendees: 450 },
-    { title: "Youth Meeting", date: "Dec 23, 2024", time: "6:00 PM", attendees: 85 },
-    { title: "Bible Study", date: "Dec 24, 2024", time: "7:00 PM", attendees: 120 },
-    { title: "Christmas Service", date: "Dec 25, 2024", time: "10:00 AM", attendees: 600 },
-  ]
-
+export default function LandingPage() {
+  const features = [
+    {
+      icon: Users,
+      title: 'Member Management',
+      description:
+        'Comprehensive member database with detailed profiles and communication tools',
+    },
+    {
+      icon: Calendar,
+      title: 'Event Planning',
+      description:
+        'Schedule and manage church events, services, and special occasions',
+    },
+    {
+      icon: Heart,
+      title: 'Small Groups',
+      description:
+        'Organize and track small groups, Bible studies, and ministry teams',
+    },
+    {
+      icon: BarChart3,
+      title: 'Analytics & Reports',
+      description:
+        'Detailed insights into attendance, giving, and church growth',
+    },
+    {
+      icon: Shield,
+      title: 'Secure & Reliable',
+      description: 'Enterprise-grade security with role-based access control',
+    },
+    {
+      icon: Church,
+      title: 'Multi-Branch Support',
+      description: 'Manage multiple church locations from a single platform',
+    },
+  ];
   return (
-    <div className="space-y-6">
+    <div className='min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100'>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Church Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's what's happening at your church.</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Bell className="h-4 w-4 mr-2" />
-            Notifications
-          </Button>
-          <Button size="sm">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            View Reports
-          </Button>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">{stat.change}</span> from last month
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Recent Activities */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Recent Activities</CardTitle>
-            <CardDescription>Latest updates from your church community</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivities.map((activity, index) => (
-                <div key={index} className="flex items-center space-x-4">
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">{activity.type}</p>
-                    <p className="text-sm text-muted-foreground">{activity.description}</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary">{activity.badge}</Badge>
-                    <span className="text-xs text-muted-foreground">{activity.time}</span>
-                  </div>
-                </div>
-              ))}
+      <header className='bg-white shadow-sm'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+          <div className='flex justify-between items-center py-6'>
+            <div className='flex items-center space-x-2'>
+              <Church className='h-8 w-8 text-blue-600' />
+              <span className='text-2xl font-bold text-gray-900'>
+                ChurchManager
+              </span>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Upcoming Events */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Events</CardTitle>
-            <CardDescription>Next church activities</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {upcomingEvents.map((event, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">{event.title}</h4>
-                    <Badge variant="outline">{event.attendees} expected</Badge>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {event.date} at {event.time}
-                  </div>
-                </div>
-              ))}
+            <div className='flex items-center space-x-4'>
+              <Link href='/login'>
+                <Button variant='outline'>Login</Button>
+              </Link>
+              <Link href='/signup'>
+                <Button>Get Started</Button>
+              </Link>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Common tasks and shortcuts</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            <Link href="/members">
-              <Button variant="outline" className="w-full h-20 flex-col space-y-2">
-                <Users className="h-6 w-6" />
-                <span>Manage Members</span>
+          </div>
+        </div>
+      </header>
+      {/* Hero Section */}
+      <section className='py-20'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center'>
+          <h1 className='text-5xl font-bold text-gray-900 mb-6'>
+            Manage Your Church with
+            <span className='text-blue-600'> Confidence</span>
+          </h1>
+          <p className='text-xl text-gray-600 mb-8 max-w-3xl mx-auto'>
+            Streamline your church operations with our comprehensive management
+            system. From member management to event planning, we've got
+            everything you need to grow your ministry.
+          </p>
+          <div className='flex justify-center space-x-4'>
+            <Link href='/signup'>
+              <Button size='lg' className='px-8 py-3'>
+                Start Free Trial
               </Button>
             </Link>
-            <Link href="/finance">
-              <Button variant="outline" className="w-full h-20 flex-col space-y-2">
-                <DollarSign className="h-6 w-6" />
-                <span>Finance</span>
-              </Button>
-            </Link>
-            <Link href="/events">
-              <Button variant="outline" className="w-full h-20 flex-col space-y-2">
-                <Calendar className="h-6 w-6" />
-                <span>Events</span>
-              </Button>
-            </Link>
-            <Link href="/communication">
-              <Button variant="outline" className="w-full h-20 flex-col space-y-2">
-                <MessageSquare className="h-6 w-6" />
-                <span>Communication</span>
-              </Button>
-            </Link>
-            <Link href="/reports">
-              <Button variant="outline" className="w-full h-20 flex-col space-y-2">
-                <TrendingUp className="h-6 w-6" />
-                <span>Reports</span>
+            <Link href='#features'>
+              <Button variant='outline' size='lg' className='px-8 py-3'>
+                Learn More
               </Button>
             </Link>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
+      {/* Features Section */}
+      <section id='features' className='py-20 bg-white'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+          <div className='text-center mb-16'>
+            <h2 className='text-3xl font-bold text-gray-900 mb-4'>
+              Everything You Need to Manage Your Church
+            </h2>
+            <p className='text-lg text-gray-600 max-w-2xl mx-auto'>
+              Our platform provides all the tools necessary to efficiently
+              manage your church operations
+            </p>
+          </div>
+          <div className='grid gap-8 md:grid-cols-2 lg:grid-cols-3'>
+            {features.map((feature, index) => {
+              const IconComponent = feature.icon;
+              return (
+                <Card key={index} className='hover:shadow-lg transition-shadow'>
+                  <CardHeader>
+                    <div className='flex items-center space-x-3'>
+                      <div className='p-2 bg-blue-100 rounded-lg'>
+                        <IconComponent className='h-6 w-6 text-blue-600' />
+                      </div>
+                      <CardTitle className='text-lg'>{feature.title}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className='text-gray-600'>
+                      {feature.description}
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+      {/* CTA Section */}
+      <section className='py-20 bg-blue-600'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center'>
+          <h2 className='text-3xl font-bold text-white mb-4'>
+            Ready to Transform Your Church Management?
+          </h2>
+          <p className='text-xl text-blue-100 mb-8 max-w-2xl mx-auto'>
+            Join thousands of churches already using our platform to grow their
+            ministry
+          </p>
+          <Link href='/signup'>
+            <Button size='lg' variant='secondary' className='px-8 py-3'>
+              Get Started Today
+            </Button>
+          </Link>
+        </div>
+      </section>
+      {/* Footer */}
+      <footer className='bg-gray-900 text-white py-12'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center space-x-2'>
+              <Church className='h-6 w-6' />
+              <span className='text-lg font-semibold'>ChurchManager</span>
+            </div>
+            <p className='text-gray-400'>
+              © 2024 ChurchManager. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
-  )
+  );
 }
