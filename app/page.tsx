@@ -164,7 +164,7 @@ export default function LandingPage() {
               <span className='text-lg font-semibold'>ChurchManager</span>
             </div>
             <p className='text-gray-400'>
-              © 2024 ChurchManager. All rights reserved.
+              © 2025 Pelvintech Ltd. All rights reserved.
             </p>
           </div>
         </div>

@@ -13,14 +13,12 @@ import Link from "next/link"
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Handle forgot password logic here
     console.log("Password reset requested for:", email)
     setIsSubmitted(true)
   }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -35,7 +33,6 @@ export default function ForgotPasswordPage() {
             {isSubmitted ? "Check your email for reset instructions" : "Enter your email to reset your password"}
           </p>
         </div>
-
         <Card>
           {!isSubmitted ? (
             <>
@@ -56,14 +53,12 @@ export default function ForgotPasswordPage() {
                       required
                     />
                   </div>
-
                   <Button type="submit" className="w-full">
                     Send Reset Link
                   </Button>
                 </form>
-
                 <div className="mt-6 text-center">
-                  <Link href="/auth/login" className="inline-flex items-center text-sm text-blue-600 hover:underline">
+                  <Link href="/login" className="inline-flex items-center text-sm text-blue-600 hover:underline">
                     <ArrowLeft className="mr-1 h-4 w-4" />
                     Back to Sign In
                   </Link>
@@ -90,12 +85,11 @@ export default function ForgotPasswordPage() {
                     <li>Wait a few minutes for the email to arrive</li>
                   </ul>
                 </div>
-
                 <div className="flex flex-col space-y-2">
                   <Button variant="outline" onClick={() => setIsSubmitted(false)} className="w-full">
                     Try Different Email
                   </Button>
-                  <Link href="/auth/login">
+                  <Link href="/login">
                     <Button variant="ghost" className="w-full">
                       Back to Sign In
                     </Button>
