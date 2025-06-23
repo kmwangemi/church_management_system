@@ -1,36 +1,47 @@
-import mongoose, { type Document, Schema } from "mongoose"
-import bcrypt from "bcryptjs"
+import bcrypt from 'bcryptjs';
+import mongoose, { type Document, Schema } from 'mongoose';
 
 export interface IUser extends Document {
-  churchId: mongoose.Types.ObjectId
-  email: string
-  password: string
-  firstName: string
-  lastName: string
-  role: "Pastor" | "Associate Pastor" | "Administrator" | "Elder" | "Deacon" | "Member"
-  phone?: string
-  isActive: boolean
-  lastLogin?: Date
-  resetPasswordToken?: string
-  resetPasswordExpires?: Date
-  createdAt: Date
-  updatedAt: Date
-  comparePassword(candidatePassword: string): Promise<boolean>
+  churchId: mongoose.Types.ObjectId;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: 'member' | 'visitor' | 'pastor' | 'bishop' | 'admin' | 'superadmin';
+  phoneNumber: string;
+  isActive: boolean;
+  lastLogin?: Date;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const UserSchema = new Schema<IUser>(
   {
-    churchId: { type: Schema.Types.ObjectId, ref: "Church", required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    churchId: { type: Schema.Types.ObjectId, ref: 'Church', required: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+    },
+    password: { type: String, required: true, trim: true },
+    firstName: { type: String, required: true, trim: true, lowercase: true },
+    lastName: { type: String, required: true, trim: true, lowercase: true },
     role: {
       type: String,
-      enum: ["Pastor", "Associate Pastor", "Administrator", "Elder", "Deacon", "Member"],
+      enum: ['member', 'visitor', 'pastor', 'bishop', 'admin', 'superadmin'],
       required: true,
     },
-    phone: { type: String },
+    phoneNumber: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
     isActive: { type: Boolean, default: true },
     lastLogin: { type: Date },
     resetPasswordToken: { type: String },
@@ -39,16 +50,19 @@ const UserSchema = new Schema<IUser>(
   {
     timestamps: true,
   },
-)
+);
 
-UserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next()
-  this.password = await bcrypt.hash(this.password, 12)
-  next()
-})
+UserSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  this.password = await bcrypt.hash(this.password, 12);
+  next();
+});
 
-UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
-  return bcrypt.compare(candidatePassword, this.password)
-}
+UserSchema.methods.comparePassword = async function (
+  candidatePassword: string,
+): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
-export default mongoose.models.User || mongoose.model<IUser>("User", UserSchema)
+export default mongoose.models.User ||
+  mongoose.model<IUser>('User', UserSchema);

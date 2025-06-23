@@ -6,30 +6,24 @@ import jwt from "jsonwebtoken"
 export async function POST(request: NextRequest) {
   try {
     await dbConnect()
-
     const { email, password } = await request.json()
-
     // Find user and populate church data
     const user = await User.findOne({ email }).populate("churchId")
     if (!user) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
-
     // Check password
     const isPasswordValid = await user.comparePassword(password)
     if (!isPasswordValid) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
-
     // Check if user is active
     if (!user.isActive) {
       return NextResponse.json({ error: "Account is deactivated" }, { status: 401 })
     }
-
     // Update last login
     user.lastLogin = new Date()
     await user.save()
-
     // Generate JWT token
     const token = jwt.sign(
       {
@@ -41,7 +35,6 @@ export async function POST(request: NextRequest) {
       process.env.JWT_SECRET!,
       { expiresIn: "7d" },
     )
-
     const response = NextResponse.json({
       message: "Login successful",
       user: {
@@ -54,7 +47,6 @@ export async function POST(request: NextRequest) {
         churchName: user.churchId.name,
       },
     })
-
     // Set HTTP-only cookie
     response.cookies.set("token", token, {
       httpOnly: true,
@@ -62,7 +54,6 @@ export async function POST(request: NextRequest) {
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     })
-
     return response
   } catch (error) {
     console.error("Login error:", error)
