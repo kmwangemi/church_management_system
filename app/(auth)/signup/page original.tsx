@@ -42,11 +42,8 @@ import { useForm } from 'react-hook-form';
 export default function SignupPage() {
   const [step, setStep] = useState(1);
   const [churchData, setChurchData] = useState<ChurchFormValues | null>(null);
-
-  // Create church form with unique key and mode
   const churchForm = useForm<ChurchFormValues>({
     resolver: zodResolver(churchSchema),
-    mode: 'onChange',
     defaultValues: {
       churchName: '',
       denomination: '',
@@ -59,11 +56,8 @@ export default function SignupPage() {
       description: '',
     },
   });
-
-  // Create admin form with unique key and mode - only initialize when needed
   const adminForm = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
-    mode: 'onChange',
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -75,64 +69,26 @@ export default function SignupPage() {
       agreeToTerms: false,
     },
   });
-
   const handleChurchSubmit = async (payload: ChurchFormValues) => {
     try {
       setChurchData(payload);
-      // Reset admin form when moving to step 2
-      adminForm.reset({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phoneNumber: '',
-        password: '',
-        confirmPassword: '',
-        role: '',
-        agreeToTerms: false,
-      });
       setStep(2);
     } catch (error) {
       console.error('Church form submission failed:', error);
     }
   };
-
   const handleAdminSubmit = async (payload: UserFormValues) => {
     try {
       // Handle final registration
-      const registrationData = {
-        churchData,
-        adminData: payload,
-      };
-
-      console.log('Church Registration:', registrationData);
-
-      // Make API call to register church and admin
-      const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(registrationData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Registration failed');
-      }
-
-      const result = await response.json();
-      console.log('Registration successful:', result);
-
-      // Handle success (redirect, show message, etc.)
+      console.log('Church Registration:', { churchData, adminData: payload });
+      // Here you would typically make an API call to register the church and admin
     } catch (error) {
       console.error('Admin form submission failed:', error);
     }
   };
-
   const handleBackToStep1 = () => {
     setStep(1);
-    // Don't reset church form data when going back
   };
-
   return (
     <>
       <div className='text-center mb-8'>
@@ -151,7 +107,6 @@ export default function SignupPage() {
             : 'Set up your admin account'}
         </p>
       </div>
-
       {/* Progress Indicator */}
       <div className='flex items-center justify-center mb-8'>
         <div className='flex items-center space-x-4'>
@@ -174,7 +129,6 @@ export default function SignupPage() {
           </div>
         </div>
       </div>
-
       <Card>
         {step === 1 ? (
           <>
@@ -219,7 +173,7 @@ export default function SignupPage() {
                           </FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            value={field.value}
+                            defaultValue={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -253,7 +207,6 @@ export default function SignupPage() {
                       )}
                     />
                   </div>
-
                   <div className='grid gap-4 md:grid-cols-2'>
                     <FormField
                       control={churchForm.control}
@@ -294,7 +247,6 @@ export default function SignupPage() {
                       )}
                     />
                   </div>
-
                   <FormField
                     control={churchForm.control}
                     name='country'
@@ -310,7 +262,6 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={churchForm.control}
                     name='address'
@@ -326,7 +277,6 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-
                   <div className='grid gap-4 md:grid-cols-2'>
                     <FormField
                       control={churchForm.control}
@@ -364,7 +314,6 @@ export default function SignupPage() {
                       )}
                     />
                   </div>
-
                   <FormField
                     control={churchForm.control}
                     name='description'
@@ -382,7 +331,6 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-
                   <Button type='submit' className='w-full'>
                     Continue to Admin Setup
                     <ArrowRight className='ml-2 h-4 w-4' />
@@ -437,7 +385,6 @@ export default function SignupPage() {
                       )}
                     />
                   </div>
-
                   <div className='grid gap-4 md:grid-cols-2'>
                     <FormField
                       control={adminForm.control}
@@ -479,7 +426,6 @@ export default function SignupPage() {
                       )}
                     />
                   </div>
-
                   <FormField
                     control={adminForm.control}
                     name='role'
@@ -490,11 +436,11 @@ export default function SignupPage() {
                         </FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          value={field.value}
+                          defaultValue={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Select your role' />
+                              <SelectValue />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -513,7 +459,6 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={adminForm.control}
                     name='password'
@@ -532,7 +477,6 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={adminForm.control}
                     name='confirmPassword'
@@ -552,7 +496,6 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={adminForm.control}
                     name='agreeToTerms'
@@ -586,7 +529,6 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-
                   <div className='flex gap-4'>
                     <Button
                       type='button'
@@ -597,7 +539,11 @@ export default function SignupPage() {
                       <ArrowLeft className='mr-2 h-4 w-4' />
                       Back
                     </Button>
-                    <Button type='submit' className='flex-1'>
+                    <Button
+                      type='submit'
+                      className='flex-1'
+                      disabled={!adminForm.formState.isValid}
+                    >
                       Create Account
                     </Button>
                   </div>
@@ -607,7 +553,6 @@ export default function SignupPage() {
           </>
         )}
       </Card>
-
       <div className='mt-6 text-center'>
         <p className='text-sm text-gray-600'>
           Already have an account?{' '}

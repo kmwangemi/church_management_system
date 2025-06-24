@@ -1,7 +1,7 @@
 import mongoose, { type Document, Schema } from 'mongoose';
 
 export interface IChurch extends Document {
-  name: string;
+  churchName: string;
   denomination: string;
   email: string;
   phoneNumber: string;
@@ -16,7 +16,7 @@ export interface IChurch extends Document {
 
 const ChurchSchema = new Schema<IChurch>(
   {
-    name: { type: String, required: true, trim: true, lowercase: true },
+    churchName: { type: String, required: true, trim: true, lowercase: true },
     denomination: { type: String, required: true, trim: true, lowercase: true },
     email: {
       type: String,

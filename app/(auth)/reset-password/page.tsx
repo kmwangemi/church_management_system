@@ -1,7 +1,7 @@
 'use client';
 
-import type React from 'react';
-
+import RenderApiError from '@/components/errors/apierror';
+import { PasswordInput } from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,36 +10,64 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { CheckCircle, Church, Eye, EyeOff } from 'lucide-react';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { useResetPassword } from '@/lib/hooks/auth/use-reset-password';
+import {
+  ResetPasswordFormValues,
+  resetPasswordSchema,
+} from '@/lib/validations/auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ArrowLeft, ArrowRight, CheckCircle, Church } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 export default function ResetPasswordPage() {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token') || null;
   const [isReset, setIsReset] = useState(false);
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      alert("Passwords don't match!");
-      return;
-    }
-    // Handle password reset logic here
-    console.log('Password reset:', { password });
+  const {
+    mutateAsync: resetPasswordMutation,
+    isPending,
+    isError,
+    error,
+  } = useResetPassword();
+  const form = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      password: '',
+      confirmPassword: '',
+    },
+    mode: 'onChange', // Validate on change for real-time feedback
+  });
+  const { watch, reset } = form;
+  const watchPassword = watch('password');
+  const watchConfirmPassword = watch('confirmPassword');
+  // Handle form submission
+  const onSubmit = async (payload: ResetPasswordFormValues) => {
+    await resetPasswordMutation({
+      ...payload,
+      token: token ?? undefined,
+    });
     setIsReset(true);
+    reset();
   };
   const passwordRequirements = [
-    { text: 'At least 8 characters', met: password.length >= 8 },
-    { text: 'Contains uppercase letter', met: /[A-Z]/.test(password) },
-    { text: 'Contains lowercase letter', met: /[a-z]/.test(password) },
-    { text: 'Contains number', met: /\d/.test(password) },
+    { text: 'At least 8 characters', met: watchPassword.length >= 8 },
+    { text: 'Contains uppercase letter', met: /[A-Z]/.test(watchPassword) },
+    { text: 'Contains lowercase letter', met: /[a-z]/.test(watchPassword) },
+    { text: 'Contains number', met: /\d/.test(watchPassword) },
     {
       text: 'Contains special character',
-      met: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+      met: /[!@#$%^&*(),.?":{}|<>]/.test(watchPassword),
     },
   ];
   return (
@@ -68,124 +96,121 @@ export default function ResetPasswordPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className='space-y-4'>
-                <div className='space-y-2'>
-                  <Label htmlFor='password'>New Password</Label>
-                  <div className='relative'>
-                    <Input
-                      id='password'
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder='Enter new password'
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      required
-                    />
-                    <Button
-                      type='button'
-                      variant='ghost'
-                      size='sm'
-                      className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className='h-4 w-4 text-gray-400' />
-                      ) : (
-                        <Eye className='h-4 w-4 text-gray-400' />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                <div className='space-y-2'>
-                  <Label htmlFor='confirmPassword'>Confirm New Password</Label>
-                  <div className='relative'>
-                    <Input
-                      id='confirmPassword'
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      placeholder='Confirm new password'
-                      value={confirmPassword}
-                      onChange={e => setConfirmPassword(e.target.value)}
-                      required
-                    />
-                    <Button
-                      type='button'
-                      variant='ghost'
-                      size='sm'
-                      className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className='h-4 w-4 text-gray-400' />
-                      ) : (
-                        <Eye className='h-4 w-4 text-gray-400' />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                {/* Password Requirements */}
-                {password && (
-                  <div className='space-y-2'>
-                    <Label className='text-sm font-medium'>
-                      Password Requirements:
-                    </Label>
-                    <div className='space-y-1'>
-                      {passwordRequirements.map((req, index) => (
-                        <div
-                          key={index}
-                          className='flex items-center space-x-2 text-xs'
-                        >
-                          <CheckCircle
-                            className={`h-3 w-3 ${
-                              req.met ? 'text-green-500' : 'text-gray-300'
-                            }`}
-                          />
-                          <span
-                            className={
-                              req.met ? 'text-green-700' : 'text-gray-500'
-                            }
-                          >
-                            {req.text}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {/* Password Match Indicator */}
-                {confirmPassword && (
-                  <div className='flex items-center space-x-2 text-xs'>
-                    <CheckCircle
-                      className={`h-3 w-3 ${
-                        password === confirmPassword
-                          ? 'text-green-500'
-                          : 'text-red-500'
-                      }`}
-                    />
-                    <span
-                      className={
-                        password === confirmPassword
-                          ? 'text-green-700'
-                          : 'text-red-500'
-                      }
-                    >
-                      {password === confirmPassword
-                        ? 'Passwords match'
-                        : "Passwords don't match"}
-                    </span>
-                  </div>
-                )}
-                <Button
-                  type='submit'
-                  className='w-full'
-                  disabled={
-                    !passwordRequirements.every(req => req.met) ||
-                    password !== confirmPassword
-                  }
+              {isError && <RenderApiError error={error} />}
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className='space-y-4'
                 >
-                  Reset Password
-                </Button>
-              </form>
+                  <FormField
+                    control={form.control}
+                    name='password'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>New Password</FormLabel>
+                        <FormControl>
+                          <PasswordInput
+                            placeholder='Enter new password'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='confirmPassword'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirm New Password</FormLabel>
+                        <FormControl>
+                          <PasswordInput
+                            placeholder='Confirm new password'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* Password Requirements */}
+                  {watchPassword && (
+                    <div className='space-y-2'>
+                      <FormLabel className='text-sm font-medium'>
+                        Password Requirements:
+                      </FormLabel>
+                      <div className='space-y-1'>
+                        {passwordRequirements.map((req, index) => (
+                          <div
+                            key={index}
+                            className='flex items-center space-x-2 text-xs'
+                          >
+                            <CheckCircle
+                              className={`h-3 w-3 ${
+                                req.met ? 'text-green-500' : 'text-gray-300'
+                              }`}
+                            />
+                            <span
+                              className={
+                                req.met ? 'text-green-700' : 'text-gray-500'
+                              }
+                            >
+                              {req.text}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* Password Match Indicator */}
+                  {watchConfirmPassword && (
+                    <div className='flex items-center space-x-2 text-xs'>
+                      <CheckCircle
+                        className={`h-3 w-3 ${
+                          watchPassword === watchConfirmPassword
+                            ? 'text-green-500'
+                            : 'text-red-500'
+                        }`}
+                      />
+                      <span
+                        className={
+                          watchPassword === watchConfirmPassword
+                            ? 'text-green-700'
+                            : 'text-red-500'
+                        }
+                      >
+                        {watchPassword === watchConfirmPassword
+                          ? 'Passwords match'
+                          : "Passwords don't match"}
+                      </span>
+                    </div>
+                  )}
+                  <Button
+                    type='submit'
+                    className='w-full'
+                    disabled={!form.formState.isValid || isPending}
+                  >
+                    {isPending ? (
+                      'Resetting password...'
+                    ) : (
+                      <>
+                        Reset Password
+                        <ArrowRight className='ml-2 h-4 w-4' />
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </Form>
+              <div className='mt-6 text-center'>
+                <Link
+                  href='/login'
+                  className='inline-flex items-center text-sm text-blue-600 hover:underline'
+                >
+                  <ArrowLeft className='mr-1 h-4 w-4' />
+                  Back to Sign In
+                </Link>
+              </div>
             </CardContent>
           </>
         ) : (
