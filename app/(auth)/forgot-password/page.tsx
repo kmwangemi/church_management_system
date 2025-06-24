@@ -1,7 +1,6 @@
 'use client';
 
-import type React from 'react';
-
+import RenderApiError from '@/components/errors/apierror';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,20 +9,52 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useForgotPassword } from '@/lib/hooks/auth/use-forgot-password';
+import { successToastStyle } from '@/lib/toast-styles';
+import {
+  ForgotPasswordFormValues,
+  forgotPasswordSchema,
+} from '@/lib/validations/auth';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Church, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle forgot password logic here
-    console.log('Password reset requested for:', email);
+  const {
+    mutateAsync: forgotPasswordMutation,
+    isPending,
+    isError,
+    error,
+  } = useForgotPassword();
+  const form = useForm<ForgotPasswordFormValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: '',
+    },
+  });
+  const { reset, watch } = form;
+  const watchEmailValue = watch('email');
+  // Handle form submission
+  const onSubmit = async (payload: ForgotPasswordFormValues) => {
+    await forgotPasswordMutation(payload);
     setIsSubmitted(true);
+    toast.success(`We've sent a verification code to ${payload.email}`, {
+      style: successToastStyle,
+    });
+    reset();
   };
   return (
     <>
@@ -51,22 +82,43 @@ export default function ForgotPasswordPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className='space-y-4'>
-                <div className='space-y-2'>
-                  <Label htmlFor='email'>Email Address</Label>
-                  <Input
-                    id='email'
-                    type='email'
-                    placeholder='pastor@church.com'
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type='submit' className='w-full'>
-                  Send Reset Link
-                </Button>
-              </form>
+              {isError && <RenderApiError error={error} />}
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className='space-y-4'
+                >
+                  <div className='space-y-2'>
+                    <FormField
+                      control={form.control}
+                      name='email'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email Address</FormLabel>
+                          <FormControl>
+                            <Input placeholder='you@example.com' {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <Button
+                    type='submit'
+                    className='w-full'
+                    disabled={!watchEmailValue || isPending}
+                  >
+                    {isPending ? (
+                      'Sending reset link...'
+                    ) : (
+                      <>
+                        Send Reset Link
+                        <Mail className='ml-2 h-4 w-4' />
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </Form>
               <div className='mt-6 text-center'>
                 <Link
                   href='/login'
@@ -86,7 +138,8 @@ export default function ForgotPasswordPage() {
               </div>
               <CardTitle>Check Your Email</CardTitle>
               <CardDescription>
-                We've sent a password reset link to <strong>{email}</strong>
+                We've sent a password reset link to{' '}
+                <strong>{watchEmailValue}</strong>
               </CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
