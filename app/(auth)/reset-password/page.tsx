@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useResetPassword } from '@/lib/hooks/auth/use-reset-password';
+import { successToastStyle } from '@/lib/toast-styles';
 import {
   ResetPasswordFormValues,
   resetPasswordSchema,
@@ -29,6 +30,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -58,6 +60,9 @@ export default function ResetPasswordPage() {
       token: token ?? undefined,
     });
     setIsReset(true);
+    toast.success('Please check your email for a reset password link.', {
+      style: successToastStyle,
+    });
     reset();
   };
   const passwordRequirements = [

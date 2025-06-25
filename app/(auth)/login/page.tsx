@@ -1,4 +1,5 @@
 import LoginForm from '@/components/auth/login-form';
+import { SpinnerLoader } from '@/components/loaders/spinnerloader';
 import {
   Card,
   CardContent,
@@ -7,6 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Church } from 'lucide-react';
+import { Suspense } from 'react';
 
 export default function LoginPage() {
   return (
@@ -29,7 +31,9 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <LoginForm />
+          <Suspense fallback={<SpinnerLoader />}>
+            <LoginForm />
+          </Suspense>
         </CardContent>
       </Card>
     </>

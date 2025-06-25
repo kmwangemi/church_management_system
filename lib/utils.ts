@@ -115,3 +115,19 @@ export function capitalizeFirstLetterOfEachWord(str: string) {
   }
   return words.join(' ');
 }
+
+export const CHURCH_DENOMINATION_OPTIONS = [
+  { value: 'baptist', label: 'Baptist' },
+  { value: 'methodist', label: 'Methodist' },
+  { value: 'presbyterian', label: 'Presbyterian' },
+  { value: 'pentecostal', label: 'Pentecostal' },
+  { value: 'catholic', label: 'Catholic' },
+  { value: 'lutheran', label: 'Lutheran' },
+  { value: 'non-denominational', label: 'Non-denominational' },
+  { value: 'other', label: 'Other' },
+];
+
+export const SIGNUP_ROLE_OPTIONS = [
+  { value: 'admin', label: 'Church Admin' },
+  { value: 'superadmin', label: 'Superadmin' },
+];
