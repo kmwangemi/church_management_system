@@ -5,10 +5,13 @@ import mongoose from 'mongoose';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
-  // Start a session for the transaction
-  const session = await mongoose.startSession();
+  let session: mongoose.ClientSession | null = null;
+  let transactionCommitted = false;
   try {
+    // FIRST: Connect to database
     await dbConnect();
+    // THEN: Start a session for the transaction
+    session = await mongoose.startSession();
     const body = await request.json();
     const { churchData, adminData } = body;
     // Start the transaction
@@ -73,6 +76,7 @@ export async function POST(request: NextRequest) {
     await admin.save({ session });
     // Commit the transaction
     await session.commitTransaction();
+    transactionCommitted = true;
     return NextResponse.json(
       {
         message: 'Church and admin user created successfully',
@@ -82,15 +86,27 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    // Abort the transaction on any error
-    await session.abortTransaction();
+    // Only abort the transaction if it's still active
+    if (session && !transactionCommitted) {
+      try {
+        await session.abortTransaction();
+      } catch (abortError) {
+        console.error('Error aborting transaction:', abortError);
+      }
+    }
     console.error('Registration error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 },
     );
   } finally {
-    // Always end the session
-    await session.endSession();
+    // Always end the session (if it was created)
+    if (session) {
+      try {
+        await session.endSession();
+      } catch (endError) {
+        console.error('Error ending session:', endError);
+      }
+    }
   }
 }

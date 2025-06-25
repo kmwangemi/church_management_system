@@ -1,6 +1,9 @@
 'use client';
 
+import { CountrySelect } from '@/components/country-list-input';
+import RenderApiError from '@/components/errors/apierror';
 import { PasswordInput } from '@/components/password-input';
+import { PhoneInput } from '@/components/phone-number-input';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -27,6 +30,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useRegister } from '@/lib/hooks/auth/use-register';
+import { successToastStyle } from '@/lib/toast-styles';
+import { CHURCH_DENOMINATION_OPTIONS, SIGNUP_ROLE_OPTIONS } from '@/lib/utils';
 import {
   ChurchFormValues,
   churchSchema,
@@ -36,51 +42,41 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, ArrowRight, Church } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 export default function SignupPage() {
   const [step, setStep] = useState(1);
+  const router = useRouter();
   const [churchData, setChurchData] = useState<ChurchFormValues | null>(null);
-
-  // Create church form with unique key and mode
+  const {
+    mutateAsync: registerMutation,
+    isPending,
+    isError,
+    error,
+  } = useRegister();
   const churchForm = useForm<ChurchFormValues>({
     resolver: zodResolver(churchSchema),
-    mode: 'onChange',
     defaultValues: {
-      churchName: '',
-      denomination: '',
-      address: '',
-      country: '',
-      phoneNumber: '',
-      email: '',
-      website: '',
-      foundedYear: '',
-      description: '',
+      churchData: {
+        churchName: '',
+        denomination: '',
+        address: '',
+        country: '',
+        phoneNumber: '',
+        email: '',
+        website: '',
+        foundedYear: '',
+        description: '',
+      },
     },
   });
-
-  // Create admin form with unique key and mode - only initialize when needed
   const adminForm = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
-    mode: 'onChange',
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phoneNumber: '',
-      password: '',
-      confirmPassword: '',
-      role: '',
-      agreeToTerms: false,
-    },
-  });
-
-  const handleChurchSubmit = async (payload: ChurchFormValues) => {
-    try {
-      setChurchData(payload);
-      // Reset admin form when moving to step 2
-      adminForm.reset({
+      adminData: {
         firstName: '',
         lastName: '',
         email: '',
@@ -89,50 +85,39 @@ export default function SignupPage() {
         confirmPassword: '',
         role: '',
         agreeToTerms: false,
-      });
+      },
+    },
+  });
+  const { reset: resetChurchValues } = churchForm;
+  const { reset: resetAdminValues } = adminForm;
+  const handleNextButtonClick = async (payload: ChurchFormValues) => {
+    const isValid = await churchForm.trigger();
+    if (isValid) {
+      setChurchData(payload);
       setStep(2);
-    } catch (error) {
-      console.error('Church form submission failed:', error);
     }
   };
-
-  const handleAdminSubmit = async (payload: UserFormValues) => {
-    try {
-      // Handle final registration
-      const registrationData = {
-        churchData,
-        adminData: payload,
-      };
-
-      console.log('Church Registration:', registrationData);
-
-      // Make API call to register church and admin
-      const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(registrationData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Registration failed');
-      }
-
-      const result = await response.json();
-      console.log('Registration successful:', result);
-
-      // Handle success (redirect, show message, etc.)
-    } catch (error) {
-      console.error('Admin form submission failed:', error);
+  // Handle form submission
+  const onSubmit = async (payload: UserFormValues) => {
+    if (!churchData) {
+      return;
     }
+    const registrationData = {
+      churchData: churchData?.churchData,
+      adminData: payload?.adminData,
+    };
+    await registerMutation(registrationData);
+    // Redirect after successful registration
+    router.push('/login');
+    toast.success("Your account has been successfully created.", {
+      style: successToastStyle,
+    });
+    resetChurchValues();
+    resetAdminValues();
   };
-
   const handleBackToStep1 = () => {
     setStep(1);
-    // Don't reset church form data when going back
   };
-
   return (
     <>
       <div className='text-center mb-8'>
@@ -151,7 +136,6 @@ export default function SignupPage() {
             : 'Set up your admin account'}
         </p>
       </div>
-
       {/* Progress Indicator */}
       <div className='flex items-center justify-center mb-8'>
         <div className='flex items-center space-x-4'>
@@ -174,9 +158,8 @@ export default function SignupPage() {
           </div>
         </div>
       </div>
-
       <Card>
-        {step === 1 ? (
+        {step === 1 && (
           <>
             <CardHeader>
               <CardTitle>Church Information</CardTitle>
@@ -187,13 +170,13 @@ export default function SignupPage() {
             <CardContent>
               <Form {...churchForm}>
                 <form
-                  onSubmit={churchForm.handleSubmit(handleChurchSubmit)}
+                  onSubmit={churchForm.handleSubmit(handleNextButtonClick)}
                   className='space-y-4'
                 >
                   <div className='grid gap-4 md:grid-cols-2'>
                     <FormField
                       control={churchForm.control}
-                      name='churchName'
+                      name='churchData.churchName'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
@@ -211,7 +194,7 @@ export default function SignupPage() {
                     />
                     <FormField
                       control={churchForm.control}
-                      name='denomination'
+                      name='churchData.denomination'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
@@ -222,30 +205,20 @@ export default function SignupPage() {
                             value={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className='cursor-pointer'>
                                 <SelectValue placeholder='Select denomination' />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value='baptist'>Baptist</SelectItem>
-                              <SelectItem value='methodist'>
-                                Methodist
-                              </SelectItem>
-                              <SelectItem value='presbyterian'>
-                                Presbyterian
-                              </SelectItem>
-                              <SelectItem value='pentecostal'>
-                                Pentecostal
-                              </SelectItem>
-                              <SelectItem value='catholic'>Catholic</SelectItem>
-                              <SelectItem value='episcopal'>
-                                Episcopal
-                              </SelectItem>
-                              <SelectItem value='lutheran'>Lutheran</SelectItem>
-                              <SelectItem value='non-denominational'>
-                                Non-denominational
-                              </SelectItem>
-                              <SelectItem value='other'>Other</SelectItem>
+                            <SelectContent className='max-h-[400px] overflow-y-auto'>
+                              {CHURCH_DENOMINATION_OPTIONS.map(option => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                  className='cursor-pointer'
+                                >
+                                  {option.label}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -253,67 +226,67 @@ export default function SignupPage() {
                       )}
                     />
                   </div>
-
-                  <div className='grid gap-4 md:grid-cols-2'>
-                    <FormField
-                      control={churchForm.control}
-                      name='phoneNumber'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Phone Number <span className='text-red-500'>*</span>
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type='tel'
-                              placeholder='(254) 123-4567'
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={churchForm.control}
-                      name='email'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Church Email <span className='text-red-500'>*</span>
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type='email'
-                              placeholder='info@gracechurch.com'
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
                   <FormField
                     control={churchForm.control}
-                    name='country'
+                    name='churchData.email'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Church Email <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type='email'
+                            placeholder='info@gracechurch.com'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={churchForm.control}
+                    name='churchData.phoneNumber'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Phone Number <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <PhoneInput
+                            value={field.value}
+                            onChange={field.onChange}
+                            defaultCountry='KE'
+                            placeholder='Enter phone number'
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={churchForm.control}
+                    name='churchData.country'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
                           Country <span className='text-red-500'>*</span>
                         </FormLabel>
                         <FormControl>
-                          <Input placeholder='Kenya' {...field} />
+                          <CountrySelect
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder='Select your country'
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={churchForm.control}
-                    name='address'
+                    name='churchData.address'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -326,11 +299,10 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-
                   <div className='grid gap-4 md:grid-cols-2'>
                     <FormField
                       control={churchForm.control}
-                      name='website'
+                      name='churchData.website'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Website</FormLabel>
@@ -346,7 +318,7 @@ export default function SignupPage() {
                     />
                     <FormField
                       control={churchForm.control}
-                      name='foundedYear'
+                      name='churchData.foundedYear'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
@@ -364,10 +336,9 @@ export default function SignupPage() {
                       )}
                     />
                   </div>
-
                   <FormField
                     control={churchForm.control}
-                    name='description'
+                    name='churchData.description'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Church Description</FormLabel>
@@ -382,8 +353,11 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-
-                  <Button type='submit' className='w-full'>
+                  <Button
+                    type='submit'
+                    className='w-full'
+                    disabled={!churchForm.formState.isValid}
+                  >
                     Continue to Admin Setup
                     <ArrowRight className='ml-2 h-4 w-4' />
                   </Button>
@@ -391,7 +365,8 @@ export default function SignupPage() {
               </Form>
             </CardContent>
           </>
-        ) : (
+        )}
+        {step === 2 && (
           <>
             <CardHeader>
               <CardTitle>Admin Account Setup</CardTitle>
@@ -400,15 +375,16 @@ export default function SignupPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {isError && <RenderApiError error={error} />}
               <Form {...adminForm}>
                 <form
-                  onSubmit={adminForm.handleSubmit(handleAdminSubmit)}
+                  onSubmit={adminForm.handleSubmit(onSubmit)}
                   className='space-y-4'
                 >
                   <div className='grid gap-4 md:grid-cols-2'>
                     <FormField
                       control={adminForm.control}
-                      name='firstName'
+                      name='adminData.firstName'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
@@ -423,7 +399,7 @@ export default function SignupPage() {
                     />
                     <FormField
                       control={adminForm.control}
-                      name='lastName'
+                      name='adminData.lastName'
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
@@ -437,52 +413,48 @@ export default function SignupPage() {
                       )}
                     />
                   </div>
-
-                  <div className='grid gap-4 md:grid-cols-2'>
-                    <FormField
-                      control={adminForm.control}
-                      name='email'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Email Address{' '}
-                            <span className='text-red-500'>*</span>
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type='email'
-                              placeholder='pastor@gracechurch.com'
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={adminForm.control}
-                      name='phoneNumber'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Phone Number <span className='text-red-500'>*</span>
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type='tel'
-                              placeholder='(555) 123-4567'
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
                   <FormField
                     control={adminForm.control}
-                    name='role'
+                    name='adminData.email'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Email Address <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type='email'
+                            placeholder='pastor@gracechurch.com'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={adminForm.control}
+                    name='adminData.phoneNumber'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Phone Number <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <PhoneInput
+                            value={field.value}
+                            onChange={field.onChange}
+                            defaultCountry='KE'
+                            placeholder='Enter phone number'
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={adminForm.control}
+                    name='adminData.role'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -493,30 +465,29 @@ export default function SignupPage() {
                           value={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder='Select your role' />
+                            <SelectTrigger className='cursor-pointer'>
+                              <SelectValue placeholder='Select role' />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value='Pastor'>Pastor</SelectItem>
-                            <SelectItem value='Associate Pastor'>
-                              Associate Pastor
-                            </SelectItem>
-                            <SelectItem value='Church Administrator'>
-                              Church Administrator
-                            </SelectItem>
-                            <SelectItem value='Elder'>Elder</SelectItem>
-                            <SelectItem value='Deacon'>Deacon</SelectItem>
+                          <SelectContent className='max-h-[400px] overflow-y-auto'>
+                            {SIGNUP_ROLE_OPTIONS.map(option => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                                className='cursor-pointer'
+                              >
+                                {option.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={adminForm.control}
-                    name='password'
+                    name='adminData.password'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -532,10 +503,9 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={adminForm.control}
-                    name='confirmPassword'
+                    name='adminData.confirmPassword'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -552,10 +522,9 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={adminForm.control}
-                    name='agreeToTerms'
+                    name='adminData.agreeToTerms'
                     render={({ field }) => (
                       <FormItem className='flex flex-row items-start space-x-3 space-y-0'>
                         <FormControl>
@@ -586,7 +555,6 @@ export default function SignupPage() {
                       </FormItem>
                     )}
                   />
-
                   <div className='flex gap-4'>
                     <Button
                       type='button'
@@ -597,8 +565,19 @@ export default function SignupPage() {
                       <ArrowLeft className='mr-2 h-4 w-4' />
                       Back
                     </Button>
-                    <Button type='submit' className='flex-1'>
-                      Create Account
+                    <Button
+                      type='submit'
+                      className='flex-1'
+                      disabled={!adminForm.formState.isValid || isPending}
+                    >
+                      {isPending ? (
+                        'Creaing account...'
+                      ) : (
+                        <>
+                          Create Account
+                          <ArrowRight className='ml-2 h-4 w-4' />
+                        </>
+                      )}
                     </Button>
                   </div>
                 </form>
@@ -607,7 +586,6 @@ export default function SignupPage() {
           </>
         )}
       </Card>
-
       <div className='mt-6 text-center'>
         <p className='text-sm text-gray-600'>
           Already have an account?{' '}

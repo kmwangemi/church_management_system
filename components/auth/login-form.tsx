@@ -35,8 +35,7 @@ export default function LoginForm() {
       password: '',
     },
   });
-  const { reset, watch } = form;
-  const watchAllValues = watch();
+  const { reset } = form;
   // Handle form submission
   const onSubmit = async (payload: LoginFormValues) => {
     await loginMutation(payload);
@@ -104,10 +103,7 @@ export default function LoginForm() {
           <Button
             type='submit'
             className='w-full'
-            disabled={
-              !Object.values(watchAllValues).every(value => !!value) ||
-              isPending
-            }
+            disabled={!form.formState.isValid || isPending}
           >
             {isPending ? (
               'Signing in...'

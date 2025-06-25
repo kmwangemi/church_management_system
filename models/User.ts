@@ -9,6 +9,7 @@ export interface IUser extends Document {
   lastName: string;
   role: 'member' | 'visitor' | 'pastor' | 'bishop' | 'admin' | 'superadmin';
   phoneNumber: string;
+  agreeToTerms: boolean;
   isActive: boolean;
   lastLogin?: Date;
   resetPasswordToken?: string;
@@ -42,6 +43,7 @@ const UserSchema = new Schema<IUser>(
       unique: true,
       trim: true,
     },
+    agreeToTerms: { type: Boolean, default: true },
     isActive: { type: Boolean, default: true },
     lastLogin: { type: Date },
     resetPasswordToken: { type: String },

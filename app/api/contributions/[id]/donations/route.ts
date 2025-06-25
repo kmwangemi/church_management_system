@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongodb"
-import ContributionDonation from "@/models/ContributionDonation"
+import Donation from "@/models/Donation"
 import Contribution from "@/models/Contribution"
 import { verifyToken } from "@/lib/auth"
 
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: "Contribution not found" }, { status: 404 })
     }
 
-    const donation = new ContributionDonation({
+    const donation = new Donation({
       ...donationData,
       contributionId: params.id,
       churchId: user.churchId,
