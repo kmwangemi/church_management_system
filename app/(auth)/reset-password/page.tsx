@@ -27,14 +27,14 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, ArrowRight, CheckCircle, Church } from 'lucide-react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 export default function ResetPasswordPage() {
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token') || null;
+  // const searchParams = useSearchParams();
+  // const token = searchParams.get('token') || null;
+  const token = null;
   const [isReset, setIsReset] = useState(false);
   const {
     mutateAsync: resetPasswordMutation,
