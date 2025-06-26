@@ -11,7 +11,6 @@ export default function AnnouncementsLoading() {
         </div>
         <Skeleton className="h-10 w-40" />
       </div>
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i}>
@@ -25,7 +24,6 @@ export default function AnnouncementsLoading() {
           </Card>
         ))}
       </div>
-
       <div className="space-y-4">
         <Skeleton className="h-6 w-48" />
         <div className="grid gap-4">
@@ -55,7 +53,6 @@ export default function AnnouncementsLoading() {
           ))}
         </div>
       </div>
-
       <Card>
         <CardHeader>
           <Skeleton className="h-6 w-48" />

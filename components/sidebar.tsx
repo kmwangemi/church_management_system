@@ -24,26 +24,25 @@ import {
 } from "lucide-react"
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: Home },
-  { name: "Members", href: "/members", icon: Users },
-  { name: "Branches & Departments", href: "/branches", icon: Building2 },
-  { name: "Finance & Giving", href: "/finance", icon: DollarSign },
-  { name: "Events", href: "/events", icon: Calendar },
-  { name: "Communication", href: "/communication", icon: MessageSquare },
-  { name: "Reports & Analytics", href: "/reports", icon: BarChart3 },
-  { name: "Content Management", href: "/content", icon: BookOpen },
-  { name: "Discipleship", href: "/discipleship", icon: UserPlus },
-  { name: "Volunteers", href: "/volunteers", icon: UserCheck },
-  { name: "Prayer Requests", href: "/prayer", icon: Heart },
-  { name: "Settings", href: "/settings", icon: Settings },
-  { name: "Small Groups", href: "/groups", icon: Users },
-  { name: "Contributions", href: "/contributions", icon: Gift },
-  { name: "Announcements", href: "/announcements", icon: Megaphone },
-]
+  { name: 'Dashboard', href: '/dashboard', icon: Home },
+  { name: 'Branches & Departments', href: '/branches', icon: Building2 },
+  { name: 'Members', href: '/members', icon: Users },
+  { name: 'Small Groups', href: '/groups', icon: Users },
+  { name: 'Finance & Giving', href: '/finance', icon: DollarSign },
+  { name: 'Contributions', href: '/contributions', icon: Gift },
+  { name: 'Events', href: '/events', icon: Calendar },
+  { name: 'Communication', href: '/communication', icon: MessageSquare },
+  { name: 'Announcements', href: '/announcements', icon: Megaphone },
+  { name: 'Discipleship', href: '/discipleship', icon: UserPlus },
+  { name: 'Prayer Requests', href: '/prayer', icon: Heart },
+  { name: 'Volunteers', href: '/volunteers', icon: UserCheck },
+  { name: 'Reports & Analytics', href: '/reports', icon: BarChart3 },
+  { name: 'Content Management', href: '/content', icon: BookOpen },
+  { name: 'Settings', href: '/settings', icon: Settings },
+];
 
 export function Sidebar() {
   const pathname = usePathname()
-
   return (
     <div className="hidden md:flex md:w-64 md:flex-col">
       <div className="flex flex-col flex-grow pt-5 bg-card border-r overflow-y-auto">

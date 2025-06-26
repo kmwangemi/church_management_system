@@ -11,7 +11,6 @@ export default function GroupsLoading() {
         </div>
         <Skeleton className="h-10 w-32" />
       </div>
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
           <Card key={i}>
@@ -25,7 +24,6 @@ export default function GroupsLoading() {
           </Card>
         ))}
       </div>
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <Card key={i}>
