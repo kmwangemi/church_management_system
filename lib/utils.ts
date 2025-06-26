@@ -131,3 +131,26 @@ export const SIGNUP_ROLE_OPTIONS = [
   { value: 'admin', label: 'Church Admin' },
   { value: 'superadmin', label: 'Superadmin' },
 ];
+
+export const MEMBER_SIGNUP_ROLE_OPTIONS = [
+  { value: 'member', label: 'Member' },
+  { value: 'visitor', label: 'Visitor' },
+  { value: 'pastor', label: 'Pastor' },
+  { value: 'bishop', label: 'Bishop' },
+];
+
+export const DEPARTMENT_OPTIONS = [
+  { value: 'choir', label: 'Choir' },
+  { value: 'youth', label: 'Youth' },
+  { value: 'ushering', label: 'Ushering' },
+  { value: 'finance', label: 'Finance' },
+  { value: 'leadership', label: 'Leadership' },
+];
+
+export const BRANCH_OPTIONS = [
+  { value: 'kawangware', label: 'Kawangware' },
+  { value: 'sunton', label: 'Sunton' },
+  { value: 'kibra', label: 'Kibra' },
+  { value: 'kakamega', label: 'Kakamega' },
+  { value: 'busia', label: 'Busia' },
+];

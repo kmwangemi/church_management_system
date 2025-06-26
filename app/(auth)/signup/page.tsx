@@ -571,7 +571,7 @@ export default function SignupPage() {
                       disabled={!adminForm.formState.isValid || isPending}
                     >
                       {isPending ? (
-                        'Creaing account...'
+                        'Creating account...'
                       ) : (
                         <>
                           Create Account
