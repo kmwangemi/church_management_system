@@ -30,15 +30,20 @@ export function useRegisterBranch() {
 //   });
 // };
 
-const fetchBranches = async (): Promise<BranchListResponse> => {
-  const { data } = await apiClient.get('/branches');
+const fetchBranches = async (
+  page = 1,
+  search = '',
+): Promise<BranchListResponse> => {
+  const { data } = await apiClient.get(
+    `/branches?page=${page}&search=${search}`,
+  );
   return data;
 };
 
-export const useFetchBranches = () => {
+export const useFetchBranches = (page = 1, search = '') => {
   return useQuery({
-    queryKey: ['branches'],
-    queryFn: fetchBranches,
+    queryKey: ['branches', page, search],
+    queryFn: () => fetchBranches(page, search),
   });
 };
 

@@ -4,6 +4,7 @@ import { CountrySelect } from '@/components/country-list-input';
 import { DatePicker } from '@/components/date-picker';
 import RenderApiError from '@/components/errors/apierror';
 import { MultiSelect } from '@/components/multi-select';
+import SearchInput from '@/components/search-input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -48,7 +49,10 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { useFetchBranches, useRegisterBranch } from '@/lib/hooks/branch/use-branch';
+import {
+  useFetchBranches,
+  useRegisterBranch,
+} from '@/lib/hooks/branch/use-branch';
 import { useRegisterDepartment } from '@/lib/hooks/department/use-department';
 import { successToastStyle } from '@/lib/toast-styles';
 import { CHURCH_BRANCH_OPTIONS, MEETING_DAY_OPTIONS } from '@/lib/utils';
@@ -60,13 +64,14 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Building2,
+  Loader2,
   MapPin,
   Plus,
   Search,
   UserCheck,
   Users,
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -159,16 +164,23 @@ const departments = [
 
 export default function BranchesPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [isBranchDialogOpen, setIsBranchDialogOpen] = useState(false);
   const [isDepartmentDialogOpen, setIsDepartmentDialogOpen] = useState(false);
+  const page = Number.parseInt(searchParams.get('page') || '1');
+  const searchQuery = searchParams.get('query') || '';
+  const { register, handleSubmit } = useForm({
+    defaultValues: {
+      query: searchQuery,
+    },
+  });
   const {
     data: branches,
     isLoading: isLoadingBranches,
     isError: isErrorBranches,
     error: errorBranches,
-  } = useFetchBranches();
-  // console.log('branches 222--->', JSON.stringify(branches));
+  } = useFetchBranches(page, searchQuery);
   const {
     mutateAsync: registerBranchMutation,
     isPending: isPendingBranch,
@@ -221,11 +233,6 @@ export default function BranchesPage() {
     setIsDepartmentDialogOpen(false);
     resetDepartmentForm();
   };
-
-  const filteredBranches = branches?.branches.filter(branch =>
-    branch.branchName.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-
   const filteredDepartments = departments.filter(dept =>
     dept.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
@@ -525,7 +532,6 @@ export default function BranchesPage() {
           </Dialog>
         </div>
       </div>
-
       {/* Overview Cards */}
       <div className='grid gap-4 md:grid-cols-4'>
         <Card>
@@ -577,14 +583,12 @@ export default function BranchesPage() {
           </CardContent>
         </Card>
       </div>
-
       <Tabs defaultValue='branches' className='space-y-4'>
         <TabsList>
           <TabsTrigger value='branches'>Branches</TabsTrigger>
           <TabsTrigger value='departments'>Departments</TabsTrigger>
           <TabsTrigger value='hierarchy'>Hierarchy</TabsTrigger>
         </TabsList>
-
         <TabsContent value='branches' className='space-y-4'>
           <Card>
             <CardHeader>
@@ -594,77 +598,72 @@ export default function BranchesPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className='flex items-center space-x-2 mb-4'>
-                <div className='relative flex-1'>
-                  <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-                  <Input
-                    placeholder='Search branches...'
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className='pl-10'
-                  />
+              <div className='mb-4'>
+                <SearchInput
+                  register={register}
+                  handleSubmit={handleSubmit}
+                  placeholder='Search branches...'
+                />
+              </div>
+              {isErrorBranches && <RenderApiError error={errorBranches} />}
+              {isLoadingBranches ? (
+                <div className='flex items-center justify-center py-8'>
+                  <Loader2 className='mr-2 h-6 w-6 animate-spin' />
+                  <span className='text-muted-foreground'>
+                    Loading branches...
+                  </span>
                 </div>
-              </div>
-
-              <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                {filteredBranches?.map(branch => (
-                  <Card key={branch._id}>
-                    <CardContent className='p-6'>
-                      <div className='space-y-4'>
-                        <div className='flex items-center justify-between'>
-                          <h3 className='font-semibold text-lg'>
-                            {branch.branchName}
-                          </h3>
-                          <Badge variant='secondary'>{branch.isActive}</Badge>
-                        </div>
-                        <div className='space-y-2 text-sm text-muted-foreground'>
-                          <div className='flex items-center'>
-                            <MapPin className='h-4 w-4 mr-2' />
-                            {branch.address}
+              ) : (
+                <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                  {branches?.branches?.map(branch => (
+                    <Card key={branch._id}>
+                      <CardContent className='p-6'>
+                        <div className='space-y-4'>
+                          <div className='flex items-center justify-between'>
+                            <h3 className='font-semibold text-lg'>
+                              {branch.branchName}
+                            </h3>
+                            <Badge variant='secondary'>{branch.isActive}</Badge>
                           </div>
-                          {/* <div className='flex items-center'>
-                            <UserCheck className='h-4 w-4 mr-2' />
-                            {branch.pastor}
-                          </div> */}
-                          {/* <div className='flex items-center'>
-                            <Users className='h-4 w-4 mr-2' />
-                            {branch.members} members
-                          </div> */}
-                          {/* <div className='flex items-center'>
-                            <Building2 className='h-4 w-4 mr-2' />
-                            {branch.departments} departments
-                          </div> */}
+                          <div className='space-y-2 text-sm text-muted-foreground'>
+                            <div className='flex items-center'>
+                              <MapPin className='h-4 w-4 mr-2' />
+                              {branch.address}
+                            </div>
+                            {/* <div className='flex items-center'>
+                          <UserCheck className='h-4 w-4 mr-2' />
+                          {branch.pastor}
+                        </div> */}
+                            {/* <div className='flex items-center'>
+                          <Users className='h-4 w-4 mr-2' />
+                          {branch.members} members
+                        </div> */}
+                            {/* <div className='flex items-center'>
+                          <Building2 className='h-4 w-4 mr-2' />
+                          {branch.departments} departments
+                        </div> */}
+                          </div>
+                          <div className='text-xs text-muted-foreground'>
+                            Established: {branch.establishedDate}
+                          </div>
+                          <div className='flex'>
+                            <Button
+                              variant='outline'
+                              size='sm'
+                              className='flex-1'
+                              onClick={() =>
+                                router.push(`/branches/${branch._id}`)
+                              }
+                            >
+                              View Details
+                            </Button>
+                          </div>
                         </div>
-                        <div className='text-xs text-muted-foreground'>
-                          Established: {branch.establishedDate}
-                        </div>
-                        <div className='flex space-x-2'>
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            className='flex-1'
-                            onClick={() =>
-                              router.push(`/branches/${branch._id}`)
-                            }
-                          >
-                            View Details
-                          </Button>
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            className='flex-1'
-                            onClick={() =>
-                              router.push(`/branches/${branch._id}`)
-                            }
-                          >
-                            Edit
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
