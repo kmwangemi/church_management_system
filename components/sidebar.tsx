@@ -25,8 +25,8 @@ import {
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Branches & Departments', href: '/branches', icon: Building2 },
   { name: 'Members', href: '/members', icon: Users },
+  { name: 'Branches & Departments', href: '/branches', icon: Building2 },
   { name: 'Small Groups', href: '/groups', icon: Users },
   { name: 'Finance & Giving', href: '/finance', icon: DollarSign },
   { name: 'Contributions', href: '/contributions', icon: Gift },

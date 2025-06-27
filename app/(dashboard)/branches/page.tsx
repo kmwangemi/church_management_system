@@ -1,12 +1,19 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { CountrySelect } from '@/components/country-list-input';
+import { DatePicker } from '@/components/date-picker';
+import RenderApiError from '@/components/errors/apierror';
+import { MultiSelect } from '@/components/multi-select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -14,367 +21,642 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Search, MapPin, Users, Building2, UserCheck, Eye } from "lucide-react"
-import Link from "next/link"
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { useFetchBranches, useRegisterBranch } from '@/lib/hooks/branch/use-branch';
+import { useRegisterDepartment } from '@/lib/hooks/department/use-department';
+import { successToastStyle } from '@/lib/toast-styles';
+import { CHURCH_BRANCH_OPTIONS, MEETING_DAY_OPTIONS } from '@/lib/utils';
+import { AddBranchFormValues, addBranchSchema } from '@/lib/validations/branch';
+import {
+  AddDepartmentFormValues,
+  addDepartmentSchema,
+} from '@/lib/validations/department';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Building2,
+  MapPin,
+  Plus,
+  Search,
+  UserCheck,
+  Users,
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
-const branchesData = [
-  { id: "1", name: "Main Branch", location: "New York" },
-  { id: "2", name: "Secondary Branch", location: "Los Angeles" },
-]
+// const branches = [
+//   {
+//     id: 1,
+//     name: 'Main Campus',
+//     location: '123 Church Street, Downtown',
+//     pastor: 'Pastor John Smith',
+//     members: 850,
+//     departments: 8,
+//     status: 'Active',
+//     established: '1995',
+//   },
+//   {
+//     id: 2,
+//     name: 'North Branch',
+//     location: '456 Oak Avenue, North District',
+//     pastor: 'Pastor Sarah Johnson',
+//     members: 320,
+//     departments: 5,
+//     status: 'Active',
+//     established: '2010',
+//   },
+//   {
+//     id: 3,
+//     name: 'Youth Campus',
+//     location: '789 Pine Road, University Area',
+//     pastor: 'Pastor Mike Wilson',
+//     members: 180,
+//     departments: 4,
+//     status: 'Active',
+//     established: '2018',
+//   },
+// ];
+
+const departments = [
+  {
+    id: 1,
+    name: 'Choir Ministry',
+    branch: 'Main Campus',
+    leader: 'Mary Johnson',
+    members: 45,
+    meetingDay: 'Wednesday',
+    meetingTime: '7:00 PM',
+    status: 'Active',
+  },
+  {
+    id: 2,
+    name: 'Youth Ministry',
+    branch: 'All Branches',
+    leader: 'David Brown',
+    members: 120,
+    meetingDay: 'Friday',
+    meetingTime: '6:00 PM',
+    status: 'Active',
+  },
+  {
+    id: 3,
+    name: 'Ushering Team',
+    branch: 'Main Campus',
+    leader: 'Robert Davis',
+    members: 32,
+    meetingDay: 'Sunday',
+    meetingTime: '8:00 AM',
+    status: 'Active',
+  },
+  {
+    id: 4,
+    name: "Women's Ministry",
+    branch: 'North Branch',
+    leader: 'Linda Wilson',
+    members: 65,
+    meetingDay: 'Saturday',
+    meetingTime: '10:00 AM',
+    status: 'Active',
+  },
+  {
+    id: 5,
+    name: "Men's Fellowship",
+    branch: 'Main Campus',
+    leader: 'James Miller',
+    members: 78,
+    meetingDay: 'Saturday',
+    meetingTime: '7:00 AM',
+    status: 'Active',
+  },
+];
 
 export default function BranchesPage() {
-  const [searchTerm, setSearchTerm] = useState("")
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isBranchDialogOpen, setIsBranchDialogOpen] = useState(false);
+  const [isDepartmentDialogOpen, setIsDepartmentDialogOpen] = useState(false);
+  const {
+    data: branches,
+    isLoading: isLoadingBranches,
+    isError: isErrorBranches,
+    error: errorBranches,
+  } = useFetchBranches();
+  // console.log('branches 222--->', JSON.stringify(branches));
+  const {
+    mutateAsync: registerBranchMutation,
+    isPending: isPendingBranch,
+    isError: isErrorBranch,
+    error: errorBranch,
+  } = useRegisterBranch();
+  const {
+    mutateAsync: registerDepartmentMutation,
+    isPending: isPendingDepartment,
+    isError: isErrorDepartment,
+    error: errorDepartment,
+  } = useRegisterDepartment();
+  const branchForm = useForm<AddBranchFormValues>({
+    resolver: zodResolver(addBranchSchema),
+    defaultValues: {
+      branchName: '',
+      country: '',
+      address: '',
+      // pastorId: '',
+      establishedDate: '',
+    },
+  });
+  const departmentForm = useForm<AddDepartmentFormValues>({
+    resolver: zodResolver(addDepartmentSchema),
+    defaultValues: {
+      departmentName: '',
+      branchId: '',
+      // leaderId: '',
+      meetingDay: [],
+      meetingTime: '',
+      description: '',
+    },
+  });
+  const { reset: resetBranchForm } = branchForm;
+  const { reset: resetDepartmentForm } = departmentForm;
+  // Handle form submission
+  const onSubmitBranchForm = async (payload: AddBranchFormValues) => {
+    await registerBranchMutation(payload);
+    toast.success('Church branch has been successfully created.', {
+      style: successToastStyle,
+    });
+    setIsBranchDialogOpen(false);
+    resetBranchForm();
+  };
+  const onSubmitDepartmentForm = async (payload: AddDepartmentFormValues) => {
+    await registerDepartmentMutation(payload);
+    toast.success('Church department has been successfully created.', {
+      style: successToastStyle,
+    });
+    setIsDepartmentDialogOpen(false);
+    resetDepartmentForm();
+  };
 
-  const branches = [
-    {
-      id: 1,
-      name: "Main Campus",
-      location: "123 Church Street, Downtown",
-      pastor: "Pastor John Smith",
-      members: 850,
-      departments: 8,
-      status: "Active",
-      established: "1995",
-    },
-    {
-      id: 2,
-      name: "North Branch",
-      location: "456 Oak Avenue, North District",
-      pastor: "Pastor Sarah Johnson",
-      members: 320,
-      departments: 5,
-      status: "Active",
-      established: "2010",
-    },
-    {
-      id: 3,
-      name: "Youth Campus",
-      location: "789 Pine Road, University Area",
-      pastor: "Pastor Mike Wilson",
-      members: 180,
-      departments: 4,
-      status: "Active",
-      established: "2018",
-    },
-  ]
+  const filteredBranches = branches?.branches.filter(branch =>
+    branch.branchName.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
-  const departments = [
-    {
-      id: 1,
-      name: "Choir Ministry",
-      branch: "Main Campus",
-      leader: "Mary Johnson",
-      members: 45,
-      meetingDay: "Wednesday",
-      meetingTime: "7:00 PM",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Youth Ministry",
-      branch: "All Branches",
-      leader: "David Brown",
-      members: 120,
-      meetingDay: "Friday",
-      meetingTime: "6:00 PM",
-      status: "Active",
-    },
-    {
-      id: 3,
-      name: "Ushering Team",
-      branch: "Main Campus",
-      leader: "Robert Davis",
-      members: 32,
-      meetingDay: "Sunday",
-      meetingTime: "8:00 AM",
-      status: "Active",
-    },
-    {
-      id: 4,
-      name: "Women's Ministry",
-      branch: "North Branch",
-      leader: "Linda Wilson",
-      members: 65,
-      meetingDay: "Saturday",
-      meetingTime: "10:00 AM",
-      status: "Active",
-    },
-    {
-      id: 5,
-      name: "Men's Fellowship",
-      branch: "Main Campus",
-      leader: "James Miller",
-      members: 78,
-      meetingDay: "Saturday",
-      meetingTime: "7:00 AM",
-      status: "Active",
-    },
-  ]
-
-  const filteredBranches = branches.filter((branch) => branch.name.toLowerCase().includes(searchTerm.toLowerCase()))
-
-  const filteredDepartments = departments.filter((dept) => dept.name.toLowerCase().includes(searchTerm.toLowerCase()))
-
+  const filteredDepartments = departments.filter(dept =>
+    dept.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+  const handleCancelBranch = () => {
+    setIsBranchDialogOpen(false);
+    resetBranchForm(); // Optional: reset form when canceling
+  };
+  const handleCancelDepartment = () => {
+    setIsDepartmentDialogOpen(false);
+    resetDepartmentForm(); // Optional: reset form when canceling
+  };
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className='space-y-6'>
+      <div className='flex items-center justify-between'>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Branches & Departments</h1>
-          <p className="text-muted-foreground">Manage church locations and ministry departments</p>
+          <h1 className='text-3xl font-bold tracking-tight'>
+            Branches & Departments
+          </h1>
+          <p className='text-muted-foreground'>
+            Manage church locations and ministry departments
+          </p>
         </div>
-        <div className="flex space-x-2">
-          <Dialog>
+        <div className='flex space-x-2'>
+          <Dialog
+            open={isBranchDialogOpen}
+            onOpenChange={setIsBranchDialogOpen}
+          >
             <DialogTrigger asChild>
-              <Button variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={() => setIsBranchDialogOpen(true)}>
+                <Plus className='h-4 w-4 mr-2' />
                 Add Branch
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className='sm:max-w-[425px]'>
               <DialogHeader>
                 <DialogTitle>Add New Branch</DialogTitle>
-                <DialogDescription>Create a new church branch location.</DialogDescription>
+                <DialogDescription>
+                  Add a new branch to the church database.
+                </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="branchName" className="text-right">
-                    Name
-                  </Label>
-                  <Input id="branchName" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="location" className="text-right">
-                    Location
-                  </Label>
-                  <Input id="location" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="pastor" className="text-right">
-                    Pastor
-                  </Label>
-                  <Select>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select pastor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pastor1">Pastor John Smith</SelectItem>
-                      <SelectItem value="pastor2">Pastor Sarah Johnson</SelectItem>
-                      <SelectItem value="pastor3">Pastor Mike Wilson</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="established" className="text-right">
-                    Established
-                  </Label>
-                  <Input id="established" type="date" className="col-span-3" />
-                </div>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline">Cancel</Button>
-                <Button>Add Branch</Button>
-              </div>
+              {isErrorBranch && <RenderApiError error={errorBranch} />}
+              <Form {...branchForm}>
+                <form
+                  onSubmit={branchForm.handleSubmit(onSubmitBranchForm)}
+                  className='space-y-4'
+                >
+                  <FormField
+                    control={branchForm.control}
+                    name='branchName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Branch Name <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder='Kibra' {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={branchForm.control}
+                    name='country'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Country <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <CountrySelect
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder='Select country'
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={branchForm.control}
+                    name='address'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Physical Address{' '}
+                          <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder='Kawangware 46' {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={branchForm.control}
+                    name='establishedDate'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Established Date{' '}
+                          <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <DatePicker
+                            value={
+                              field.value ? new Date(field.value) : undefined
+                            }
+                            onChange={date =>
+                              field.onChange(date ? date.toISOString() : '')
+                            }
+                            placeholder='Select established date'
+                            format='long'
+                            maxDate={new Date()}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className='flex justify-end space-x-2'>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      onClick={handleCancelBranch}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type='submit'
+                      disabled={
+                        !branchForm.formState.isValid || isPendingBranch
+                      }
+                    >
+                      {isPendingBranch ? 'Adding branch...' : 'Add Branch'}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
-          <Dialog>
+          <Dialog
+            open={isDepartmentDialogOpen}
+            onOpenChange={setIsDepartmentDialogOpen}
+          >
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button
+                variant='outline'
+                onClick={() => setIsDepartmentDialogOpen(true)}
+              >
+                <Plus className='h-4 w-4 mr-2' />
                 Add Department
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className='sm:max-w-[425px]'>
               <DialogHeader>
                 <DialogTitle>Add New Department</DialogTitle>
-                <DialogDescription>Create a new ministry department.</DialogDescription>
+                <DialogDescription>
+                  Add a new department to the church database.
+                </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="deptName" className="text-right">
-                    Name
-                  </Label>
-                  <Input id="deptName" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="branch" className="text-right">
-                    Branch
-                  </Label>
-                  <Select>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select branch" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="main">Main Campus</SelectItem>
-                      <SelectItem value="north">North Branch</SelectItem>
-                      <SelectItem value="youth">Youth Campus</SelectItem>
-                      <SelectItem value="all">All Branches</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="leader" className="text-right">
-                    Leader
-                  </Label>
-                  <Select>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select leader" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="mary">Mary Johnson</SelectItem>
-                      <SelectItem value="david">David Brown</SelectItem>
-                      <SelectItem value="robert">Robert Davis</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="meetingDay" className="text-right">
-                    Meeting Day
-                  </Label>
-                  <Select>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select day" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sunday">Sunday</SelectItem>
-                      <SelectItem value="monday">Monday</SelectItem>
-                      <SelectItem value="tuesday">Tuesday</SelectItem>
-                      <SelectItem value="wednesday">Wednesday</SelectItem>
-                      <SelectItem value="thursday">Thursday</SelectItem>
-                      <SelectItem value="friday">Friday</SelectItem>
-                      <SelectItem value="saturday">Saturday</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="meetingTime" className="text-right">
-                    Meeting Time
-                  </Label>
-                  <Input id="meetingTime" type="time" className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="description" className="text-right">
-                    Description
-                  </Label>
-                  <Textarea id="description" className="col-span-3" />
-                </div>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline">Cancel</Button>
-                <Button>Add Department</Button>
-              </div>
+              {isErrorDepartment && <RenderApiError error={errorDepartment} />}
+              <Form {...departmentForm}>
+                <form
+                  onSubmit={departmentForm.handleSubmit(onSubmitDepartmentForm)}
+                  className='space-y-4'
+                >
+                  <FormField
+                    control={departmentForm.control}
+                    name='departmentName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Department Name{' '}
+                          <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder='Choir' {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={departmentForm.control}
+                    name='branchId'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Church Branch
+                          <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className='cursor-pointer'>
+                              <SelectValue placeholder='Select church branch' />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className='max-h-[400px] overflow-y-auto'>
+                            {CHURCH_BRANCH_OPTIONS.map(option => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                                className='cursor-pointer'
+                              >
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={departmentForm.control}
+                    name='meetingDay'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Meeting day(s) <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <MultiSelect
+                            options={MEETING_DAY_OPTIONS}
+                            selected={field.value || []}
+                            onChange={field.onChange}
+                            placeholder='Select meeting day(s)'
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={departmentForm.control}
+                    name='meetingTime'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Meeting Time <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input type='time' {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={departmentForm.control}
+                    name='description'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor='description' className='text-right'>
+                          Description
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            id='description'
+                            className='col-span-3'
+                            placeholder='Enter department description...'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage className='col-start-2 col-span-3' />
+                      </FormItem>
+                    )}
+                  />
+                  <div className='flex justify-end space-x-2'>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      onClick={handleCancelDepartment}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type='submit'
+                      disabled={
+                        !departmentForm.formState.isValid || isPendingDepartment
+                      }
+                    >
+                      {isPendingDepartment
+                        ? 'Adding department...'
+                        : 'Add Department'}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
       {/* Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className='grid gap-4 md:grid-cols-4'>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Branches</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>
+              Total Branches
+            </CardTitle>
+            <Building2 className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">Active locations</p>
+            <div className='text-2xl font-bold'>3</div>
+            <p className='text-xs text-muted-foreground'>Active locations</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Departments</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>
+              Total Departments
+            </CardTitle>
+            <Users className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">Ministry departments</p>
+            <div className='text-2xl font-bold'>12</div>
+            <p className='text-xs text-muted-foreground'>
+              Ministry departments
+            </p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Members</CardTitle>
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>Total Members</CardTitle>
+            <UserCheck className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,350</div>
-            <p className="text-xs text-muted-foreground">Across all branches</p>
+            <div className='text-2xl font-bold'>1,350</div>
+            <p className='text-xs text-muted-foreground'>Across all branches</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Department Leaders</CardTitle>
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+            <CardTitle className='text-sm font-medium'>
+              Department Leaders
+            </CardTitle>
+            <UserCheck className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">Active leaders</p>
+            <div className='text-2xl font-bold'>12</div>
+            <p className='text-xs text-muted-foreground'>Active leaders</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="branches" className="space-y-4">
+      <Tabs defaultValue='branches' className='space-y-4'>
         <TabsList>
-          <TabsTrigger value="branches">Branches</TabsTrigger>
-          <TabsTrigger value="departments">Departments</TabsTrigger>
-          <TabsTrigger value="hierarchy">Hierarchy</TabsTrigger>
+          <TabsTrigger value='branches'>Branches</TabsTrigger>
+          <TabsTrigger value='departments'>Departments</TabsTrigger>
+          <TabsTrigger value='hierarchy'>Hierarchy</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="branches" className="space-y-4">
+        <TabsContent value='branches' className='space-y-4'>
           <Card>
             <CardHeader>
               <CardTitle>Church Branches</CardTitle>
-              <CardDescription>Manage all church branch locations</CardDescription>
+              <CardDescription>
+                Manage all church branch locations
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <div className='flex items-center space-x-2 mb-4'>
+                <div className='relative flex-1'>
+                  <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
                   <Input
-                    placeholder="Search branches..."
+                    placeholder='Search branches...'
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className='pl-10'
                   />
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredBranches.map((branch) => (
-                  <Card key={branch.id}>
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-lg">{branch.name}</h3>
-                          <Badge variant="secondary">{branch.status}</Badge>
+              <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                {filteredBranches?.map(branch => (
+                  <Card key={branch._id}>
+                    <CardContent className='p-6'>
+                      <div className='space-y-4'>
+                        <div className='flex items-center justify-between'>
+                          <h3 className='font-semibold text-lg'>
+                            {branch.branchName}
+                          </h3>
+                          <Badge variant='secondary'>{branch.isActive}</Badge>
                         </div>
-                        <div className="space-y-2 text-sm text-muted-foreground">
-                          <div className="flex items-center">
-                            <MapPin className="h-4 w-4 mr-2" />
-                            {branch.location}
+                        <div className='space-y-2 text-sm text-muted-foreground'>
+                          <div className='flex items-center'>
+                            <MapPin className='h-4 w-4 mr-2' />
+                            {branch.address}
                           </div>
-                          <div className="flex items-center">
-                            <UserCheck className="h-4 w-4 mr-2" />
+                          {/* <div className='flex items-center'>
+                            <UserCheck className='h-4 w-4 mr-2' />
                             {branch.pastor}
-                          </div>
-                          <div className="flex items-center">
-                            <Users className="h-4 w-4 mr-2" />
+                          </div> */}
+                          {/* <div className='flex items-center'>
+                            <Users className='h-4 w-4 mr-2' />
                             {branch.members} members
-                          </div>
-                          <div className="flex items-center">
-                            <Building2 className="h-4 w-4 mr-2" />
+                          </div> */}
+                          {/* <div className='flex items-center'>
+                            <Building2 className='h-4 w-4 mr-2' />
                             {branch.departments} departments
-                          </div>
+                          </div> */}
                         </div>
-                        <div className="text-xs text-muted-foreground">Established: {branch.established}</div>
-                        <div className="flex space-x-2">
-                          <Button variant="outline" size="sm" className="flex-1">
+                        <div className='text-xs text-muted-foreground'>
+                          Established: {branch.establishedDate}
+                        </div>
+                        <div className='flex space-x-2'>
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            className='flex-1'
+                            onClick={() =>
+                              router.push(`/branches/${branch._id}`)
+                            }
+                          >
                             View Details
                           </Button>
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            className='flex-1'
+                            onClick={() =>
+                              router.push(`/branches/${branch._id}`)
+                            }
+                          >
                             Edit
                           </Button>
                         </div>
@@ -382,37 +664,28 @@ export default function BranchesPage() {
                     </CardContent>
                   </Card>
                 ))}
-                {branchesData.map((branch) => (
-                  <li key={branch.id}>
-                    {branch.name} - {branch.location}
-                    <Link href={`/branches/${branch.id}`}>
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-1" />
-                        View Details
-                      </Button>
-                    </Link>
-                  </li>
-                ))}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="departments" className="space-y-4">
+        <TabsContent value='departments' className='space-y-4'>
           <Card>
             <CardHeader>
               <CardTitle>Ministry Departments</CardTitle>
-              <CardDescription>Manage all ministry departments across branches</CardDescription>
+              <CardDescription>
+                Manage all ministry departments across branches
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <div className='flex items-center space-x-2 mb-4'>
+                <div className='relative flex-1'>
+                  <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
                   <Input
-                    placeholder="Search departments..."
+                    placeholder='Search departments...'
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className='pl-10'
                   />
                 </div>
               </div>
@@ -430,19 +703,19 @@ export default function BranchesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredDepartments.map((dept) => (
+                  {filteredDepartments.map(dept => (
                     <TableRow key={dept.id}>
-                      <TableCell className="font-medium">{dept.name}</TableCell>
+                      <TableCell className='font-medium'>{dept.name}</TableCell>
                       <TableCell>{dept.branch}</TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src="/placeholder.svg" />
+                        <div className='flex items-center space-x-2'>
+                          <Avatar className='h-6 w-6'>
+                            <AvatarImage src='/placeholder.svg' />
                             <AvatarFallback>
                               {dept.leader
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
+                                .split(' ')
+                                .map(n => n[0])
+                                .join('')}
                             </AvatarFallback>
                           </Avatar>
                           <span>{dept.leader}</span>
@@ -453,14 +726,14 @@ export default function BranchesPage() {
                         {dept.meetingDay} {dept.meetingTime}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">{dept.status}</Badge>
+                        <Badge variant='secondary'>{dept.status}</Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex space-x-2">
-                          <Button variant="ghost" size="sm">
+                        <div className='flex space-x-2'>
+                          <Button variant='ghost' size='sm'>
                             View
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button variant='ghost' size='sm'>
                             Edit
                           </Button>
                         </div>
@@ -472,38 +745,54 @@ export default function BranchesPage() {
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="hierarchy" className="space-y-4">
+        <TabsContent value='hierarchy' className='space-y-4'>
           <Card>
             <CardHeader>
               <CardTitle>Organizational Hierarchy</CardTitle>
-              <CardDescription>Visual representation of church structure</CardDescription>
+              <CardDescription>
+                Visual representation of church structure
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                {branches.map((branch) => (
-                  <div key={branch.id} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <Building2 className="h-6 w-6 text-primary" />
+              <div className='space-y-6'>
+                {branches?.branches.map(branch => (
+                  <div key={branch._id} className='border rounded-lg p-4'>
+                    <div className='flex items-center justify-between mb-4'>
+                      <div className='flex items-center space-x-3'>
+                        <Building2 className='h-6 w-6 text-primary' />
                         <div>
-                          <h3 className="font-semibold">{branch.name}</h3>
-                          <p className="text-sm text-muted-foreground">{branch.pastor}</p>
+                          <h3 className='font-semibold'>
+                            {branch?.branchName}
+                          </h3>
+                          {/* <p className='text-sm text-muted-foreground'>
+                            {branch.pastor}
+                          </p> */}
                         </div>
                       </div>
-                      <Badge variant="outline">{branch.members} members</Badge>
+                      {/* <Badge variant='outline'>{branch.members} members</Badge> */}
                     </div>
-                    <div className="ml-9 space-y-2">
+                    <div className='ml-9 space-y-2'>
                       {departments
-                        .filter((dept) => dept.branch === branch.name || dept.branch === "All Branches")
-                        .map((dept) => (
-                          <div key={dept.id} className="flex items-center justify-between p-2 bg-muted rounded">
-                            <div className="flex items-center space-x-2">
-                              <Users className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium">{dept.name}</span>
-                              <span className="text-sm text-muted-foreground">- {dept.leader}</span>
+                        .filter(
+                          dept =>
+                            dept.branch === branch.branchName ||
+                            dept.branch === 'All Branches',
+                        )
+                        .map(dept => (
+                          <div
+                            key={dept.id}
+                            className='flex items-center justify-between p-2 bg-muted rounded'
+                          >
+                            <div className='flex items-center space-x-2'>
+                              <Users className='h-4 w-4 text-muted-foreground' />
+                              <span className='font-medium'>{dept.name}</span>
+                              <span className='text-sm text-muted-foreground'>
+                                - {dept.leader}
+                              </span>
                             </div>
-                            <Badge variant="secondary">{dept.members} members</Badge>
+                            <Badge variant='secondary'>
+                              {dept.members} members
+                            </Badge>
                           </div>
                         ))}
                     </div>
@@ -515,5 +804,5 @@ export default function BranchesPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

@@ -1,14 +1,14 @@
-import mongoose, { type Document, Schema } from "mongoose"
+import mongoose, { type Document, Schema } from 'mongoose';
 
 export interface IBranch extends Document {
   churchId: mongoose.Types.ObjectId;
-  name: string;
+  branchName: string;
   address: string;
   country: string;
   email?: string;
   phoneNumber?: string;
   pastorId?: mongoose.Types.ObjectId;
-  capacity: number;
+  capacity?: number;
   establishedDate: Date;
   isActive: boolean;
   description?: string;
@@ -18,21 +18,27 @@ export interface IBranch extends Document {
 
 const BranchSchema = new Schema<IBranch>(
   {
-    churchId: { type: Schema.Types.ObjectId, ref: 'Church', required: true },
-    name: { type: String, required: true },
-    address: { type: String, required: true },
-    country: { type: String, required: true },
-    phoneNumber: { type: String },
-    email: { type: String },
-    pastorId: { type: Schema.Types.ObjectId, ref: 'Member' },
-    capacity: { type: Number, required: true },
-    establishedDate: { type: Date, required: true },
+    churchId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Church',
+      required: true,
+      trim: true,
+    },
+    pastorId: { type: Schema.Types.ObjectId, ref: 'Member', trim: true },
+    branchName: { type: String, required: true, trim: true, lowercase: true },
+    address: { type: String, required: true, trim: true, lowercase: true },
+    country: { type: String, required: true, trim: true, lowercase: true },
+    phoneNumber: { type: String, trim: true },
+    email: { type: String, trim: true },
+    capacity: { type: Number, trim: true },
+    establishedDate: { type: Date, required: true, trim: true },
     isActive: { type: Boolean, default: true },
-    description: { type: String },
+    description: { type: String, trim: true, lowercase: true },
   },
   {
     timestamps: true,
   },
 );
 
-export default mongoose.models.Branch || mongoose.model<IBranch>("Branch", BranchSchema)
+export default mongoose.models.Branch ||
+  mongoose.model<IBranch>('Branch', BranchSchema);

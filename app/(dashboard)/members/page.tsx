@@ -49,7 +49,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useRegisterMember } from '@/lib/hooks/members/use-register-member';
 import { successToastStyle } from '@/lib/toast-styles';
-import { BRANCH_OPTIONS, DEPARTMENT_OPTIONS, MEMBER_SIGNUP_ROLE_OPTIONS } from '@/lib/utils';
+import { CHURCH_BRANCH_OPTIONS, CHURCH_DEPARTMENT_OPTIONS, MEMBER_SIGNUP_ROLE_OPTIONS } from '@/lib/utils';
 import {
   AddMemberFormValues,
   addMemberSchema,
@@ -362,7 +362,7 @@ export default function MembersPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className='max-h-[400px] overflow-y-auto'>
-                          {BRANCH_OPTIONS.map(option => (
+                          {CHURCH_BRANCH_OPTIONS.map(option => (
                             <SelectItem
                               key={option.value}
                               value={option.value}
@@ -387,7 +387,7 @@ export default function MembersPage() {
                       </FormLabel>
                       <FormControl>
                         <MultiSelect
-                          options={DEPARTMENT_OPTIONS}
+                          options={CHURCH_DEPARTMENT_OPTIONS}
                           selected={field.value || []}
                           onChange={field.onChange}
                           placeholder='Select departments'

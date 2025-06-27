@@ -139,7 +139,7 @@ export const MEMBER_SIGNUP_ROLE_OPTIONS = [
   { value: 'bishop', label: 'Bishop' },
 ];
 
-export const DEPARTMENT_OPTIONS = [
+export const CHURCH_DEPARTMENT_OPTIONS = [
   { value: 'choir', label: 'Choir' },
   { value: 'youth', label: 'Youth' },
   { value: 'ushering', label: 'Ushering' },
@@ -147,10 +147,20 @@ export const DEPARTMENT_OPTIONS = [
   { value: 'leadership', label: 'Leadership' },
 ];
 
-export const BRANCH_OPTIONS = [
+export const CHURCH_BRANCH_OPTIONS = [
   { value: 'kawangware', label: 'Kawangware' },
   { value: 'sunton', label: 'Sunton' },
   { value: 'kibra', label: 'Kibra' },
   { value: 'kakamega', label: 'Kakamega' },
   { value: 'busia', label: 'Busia' },
+];
+
+export const MEETING_DAY_OPTIONS = [
+  { value: 'sunday', label: 'Sunday' },
+  { value: 'monday', label: 'Monday' },
+  { value: 'tuesday', label: 'Tuesday' },
+  { value: 'wednesday', label: 'Wednesday' },
+  { value: 'thursday', label: 'Thursday' },
+  { value: 'friday', label: 'Friday' },
+  { value: 'saturday', label: 'Saturday' },
 ];
