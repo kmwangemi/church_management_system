@@ -4,6 +4,7 @@ import { CountrySelect } from '@/components/country-list-input';
 import { DatePicker } from '@/components/date-picker';
 import RenderApiError from '@/components/errors/apierror';
 import { MultiSelect } from '@/components/multi-select';
+import Pagination from '@/components/pagination';
 import SearchInput from '@/components/search-input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -55,7 +56,12 @@ import {
 } from '@/lib/hooks/branch/use-branch';
 import { useRegisterDepartment } from '@/lib/hooks/department/use-department';
 import { successToastStyle } from '@/lib/toast-styles';
-import { CHURCH_BRANCH_OPTIONS, MEETING_DAY_OPTIONS } from '@/lib/utils';
+import {
+  capitalizeFirstLetterOfEachWord,
+  CHURCH_BRANCH_OPTIONS,
+  formatToNewDate,
+  MEETING_DAY_OPTIONS,
+} from '@/lib/utils';
 import { AddBranchFormValues, addBranchSchema } from '@/lib/validations/branch';
 import {
   AddDepartmentFormValues,
@@ -71,7 +77,7 @@ import {
   UserCheck,
   Users,
 } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -165,12 +171,17 @@ const departments = [
 export default function BranchesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [searchTerm, setSearchTerm] = useState('');
   const [isBranchDialogOpen, setIsBranchDialogOpen] = useState(false);
   const [isDepartmentDialogOpen, setIsDepartmentDialogOpen] = useState(false);
   const page = Number.parseInt(searchParams.get('page') || '1');
   const searchQuery = searchParams.get('query') || '';
-  const { register, handleSubmit } = useForm({
+  const {
+    register,
+    reset: resetSearchInput,
+    handleSubmit,
+  } = useForm({
     defaultValues: {
       query: searchQuery,
     },
@@ -198,6 +209,7 @@ export default function BranchesPage() {
     defaultValues: {
       branchName: '',
       country: '',
+      capacity: 0,
       address: '',
       // pastorId: '',
       establishedDate: '',
@@ -219,9 +231,6 @@ export default function BranchesPage() {
   // Handle form submission
   const onSubmitBranchForm = async (payload: AddBranchFormValues) => {
     await registerBranchMutation(payload);
-    toast.success('Church branch has been successfully created.', {
-      style: successToastStyle,
-    });
     setIsBranchDialogOpen(false);
     resetBranchForm();
   };
@@ -238,11 +247,15 @@ export default function BranchesPage() {
   );
   const handleCancelBranch = () => {
     setIsBranchDialogOpen(false);
-    resetBranchForm(); // Optional: reset form when canceling
+    resetBranchForm();
   };
   const handleCancelDepartment = () => {
     setIsDepartmentDialogOpen(false);
-    resetDepartmentForm(); // Optional: reset form when canceling
+    resetDepartmentForm();
+  };
+  const handleResetQueries = () => {
+    resetSearchInput();
+    router.push(pathname);
   };
   return (
     <div className='space-y-6'>
@@ -308,6 +321,21 @@ export default function BranchesPage() {
                             onChange={field.onChange}
                             placeholder='Select country'
                           />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={branchForm.control}
+                    name='capacity'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Capacity <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input type='number' placeholder='300' {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -585,9 +613,15 @@ export default function BranchesPage() {
       </div>
       <Tabs defaultValue='branches' className='space-y-4'>
         <TabsList>
-          <TabsTrigger value='branches'>Branches</TabsTrigger>
-          <TabsTrigger value='departments'>Departments</TabsTrigger>
-          <TabsTrigger value='hierarchy'>Hierarchy</TabsTrigger>
+          <TabsTrigger value='branches' onClick={handleResetQueries}>
+            Branches
+          </TabsTrigger>
+          <TabsTrigger value='departments' onClick={handleResetQueries}>
+            Departments
+          </TabsTrigger>
+          <TabsTrigger value='hierarchy' onClick={handleResetQueries}>
+            Hierarchy
+          </TabsTrigger>
         </TabsList>
         <TabsContent value='branches' className='space-y-4'>
           <Card>
@@ -621,14 +655,20 @@ export default function BranchesPage() {
                         <div className='space-y-4'>
                           <div className='flex items-center justify-between'>
                             <h3 className='font-semibold text-lg'>
-                              {branch.branchName}
+                              {capitalizeFirstLetterOfEachWord(
+                                branch.branchName,
+                              )}
                             </h3>
-                            <Badge variant='secondary'>{branch.isActive}</Badge>
+                            <Badge variant='secondary'>
+                              {branch.isActive === true ? 'Active' : 'Inactive'}
+                            </Badge>
                           </div>
                           <div className='space-y-2 text-sm text-muted-foreground'>
                             <div className='flex items-center'>
                               <MapPin className='h-4 w-4 mr-2' />
-                              {branch.address}
+                              {capitalizeFirstLetterOfEachWord(branch.address)}
+                              {' - '}
+                              {capitalizeFirstLetterOfEachWord(branch.country)}
                             </div>
                             {/* <div className='flex items-center'>
                           <UserCheck className='h-4 w-4 mr-2' />
@@ -644,7 +684,8 @@ export default function BranchesPage() {
                         </div> */}
                           </div>
                           <div className='text-xs text-muted-foreground'>
-                            Established: {branch.establishedDate}
+                            Established:{' '}
+                            {formatToNewDate(new Date(branch.establishedDate))}
                           </div>
                           <div className='flex'>
                             <Button
@@ -665,9 +706,17 @@ export default function BranchesPage() {
                 </div>
               )}
             </CardContent>
+            <div className='mx-6 mb-6'>
+              {branches?.branches != null &&
+                branches?.branches !== undefined &&
+                Array.isArray(branches?.branches) &&
+                branches?.branches.length > 0 &&
+                branches?.pagination?.pages > 1 && (
+                  <Pagination totalPages={branches?.pagination?.pages} />
+                )}
+            </div>
           </Card>
         </TabsContent>
-
         <TabsContent value='departments' className='space-y-4'>
           <Card>
             <CardHeader>
@@ -688,7 +737,6 @@ export default function BranchesPage() {
                   />
                 </div>
               </div>
-
               <Table>
                 <TableHeader>
                   <TableRow>

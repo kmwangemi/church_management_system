@@ -1,12 +1,13 @@
 import { requireAuth } from '@/lib/auth';
 import dbConnect from '@/lib/mongodb';
+import { AddBranchFormValues } from '@/lib/validations/branch';
 import Branch from '@/models/Branch';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
     // Check authentication and authorization
-    const authResult = await requireAuth(['superadmin'])(request);
+    const authResult = await requireAuth(['superadmin', 'admin'])(request);
     // If authResult is a Response object, it means authentication/authorization failed
     if (authResult instanceof Response) {
       return authResult;
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Check authentication and authorization
-    const authResult = await requireAuth(['superadmin'])(request);
+    const authResult = await requireAuth(['superadmin', 'admin'])(request);
     // If authResult is a Response object, it means authentication/authorization failed
     if (authResult instanceof Response) {
       return authResult;
@@ -63,12 +64,23 @@ export async function POST(request: NextRequest) {
     // authResult is now the authenticated user
     const user = authResult;
     await dbConnect();
-    const branchData = await request.json();
+    const branchData: AddBranchFormValues = await request.json();
+    const existingChurchBranch = await Branch.findOne({
+      branchName: branchData.branchName,
+      churchId: user.churchId,
+    });
+    if (existingChurchBranch) {
+      return NextResponse.json(
+        { error: 'Church branch already exists' },
+        { status: 400 },
+      );
+    }
     const branch = new Branch({
       ...branchData,
       churchId: user.churchId,
     });
     await branch.save();
+    console.log('branch---->', JSON.stringify(branch));
     return NextResponse.json(branch, { status: 201 });
   } catch (error) {
     console.error('Create branch error:', error);

@@ -1,34 +1,29 @@
 import apiClient from '@/lib/api-client';
-import { BranchListResponse } from '@/lib/types';
+import { successToastStyle } from '@/lib/toast-styles';
+import { BranchAddResponse, BranchListResponse } from '@/lib/types';
 import { AddBranchFormValues } from '@/lib/validations/branch';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
-export function useRegisterBranch() {
+const registerBranch = async (
+  payload: AddBranchFormValues,
+): Promise<BranchAddResponse> => {
+  const { data } = await apiClient.post('/branches', payload);
+  return data;
+};
+
+export const useRegisterBranch = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: AddBranchFormValues) => {
-      const { data } = await apiClient.post('/branches', payload, {});
-      return data;
+    mutationFn: registerBranch,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['branches'] });
+      toast.success('Church branch ha been created successfully.', {
+        style: successToastStyle,
+      });
     },
   });
-}
-
-// const createJob = async (payload: JobFormValues): Promise<Job> => {
-//   const { data } = await apiClient.post('/jobs', payload);
-//   return data;
-// };
-
-// export const useCreateJob = () => {
-//   const queryClient = useQueryClient();
-//   return useMutation({
-//     mutationFn: createJob,
-//     onSuccess: () => {
-//       queryClient.invalidateQueries({ queryKey: ['jobs'] });
-//       toast.success('Job created successfully.', {
-//         style: successToastStyle,
-//       });
-//     },
-//   });
-// };
+};
 
 const fetchBranches = async (
   page = 1,

@@ -12,36 +12,55 @@ interface CachedConnection {
 }
 
 declare global {
-  namespace NodeJS {
-    interface Global {
-      mongoose?: CachedConnection;
-    }
-  }
+  var mongoose: CachedConnection | undefined;
 }
 
-let cached: CachedConnection = (global as any).mongoose;
+let cached: CachedConnection = globalThis.mongoose || {
+  conn: null,
+  promise: null,
+};
 
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+if (!globalThis.mongoose) {
+  globalThis.mongoose = cached;
 }
 
 async function dbConnect(): Promise<typeof mongoose> {
   if (cached.conn) {
+    console.log('Using existing MongoDB connection');
     return cached.conn;
   }
   if (!cached.promise) {
+    console.log('Creating new MongoDB connection...');
+    console.log(
+      'Connection URI (masked):',
+      (MONGODB_URI ?? '').replace(/\/\/[^:]+:[^@]+@/, '//***:***@'),
+    );
     const opts = {
       bufferCommands: false,
       maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000, // Increased timeout
       socketTimeoutMS: 45000,
+      connectTimeoutMS: 10000,
     };
-    cached.promise = mongoose.connect(MONGODB_URI!, opts).then(mongoose => {
-      return mongoose;
-    });
+    cached.promise = mongoose
+      .connect(MONGODB_URI!, opts)
+      .then(mongoose => {
+        console.log('MongoDB connected successfully');
+        return mongoose;
+      })
+      .catch(error => {
+        console.error('MongoDB connection error:', error);
+        cached.promise = null; // Reset promise on error
+        throw error;
+      });
   }
-  cached.conn = await cached.promise;
-  return cached.conn;
+  try {
+    cached.conn = await cached.promise;
+    return cached.conn;
+  } catch (error) {
+    cached.promise = null; // Reset promise on error
+    throw error;
+  }
 }
 
 export default dbConnect;

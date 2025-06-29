@@ -1,3 +1,39 @@
+export interface FastAPIValidationError {
+  loc: (string | number)[];
+  msg: string;
+  type: string;
+}
+
+interface APIErrorResponse {
+  detail?: FastAPIValidationError[] | string;
+  message?: string;
+  error?: string;
+}
+
+export interface APIError {
+  response?: {
+    data?: APIErrorResponse;
+    status?: number;
+    statusText?: string;
+  };
+  message?: string;
+  name?: string;
+}
+
+export interface BranchAddResponse {
+  churchId: string;
+  branchName: string;
+  address: string;
+  country: string;
+  capacity: number;
+  establishedDate: string;
+  isActive: boolean;
+  _id: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
 export interface Pagination {
   page: number;
   limit: number;

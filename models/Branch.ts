@@ -8,7 +8,7 @@ export interface IBranch extends Document {
   email?: string;
   phoneNumber?: string;
   pastorId?: mongoose.Types.ObjectId;
-  capacity?: number;
+  capacity: number;
   establishedDate: Date;
   isActive: boolean;
   description?: string;
@@ -25,12 +25,18 @@ const BranchSchema = new Schema<IBranch>(
       trim: true,
     },
     pastorId: { type: Schema.Types.ObjectId, ref: 'Member', trim: true },
-    branchName: { type: String, required: true, trim: true, lowercase: true },
+    branchName: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      unique: true,
+    },
     address: { type: String, required: true, trim: true, lowercase: true },
     country: { type: String, required: true, trim: true, lowercase: true },
     phoneNumber: { type: String, trim: true },
     email: { type: String, trim: true },
-    capacity: { type: Number, trim: true },
+    capacity: { type: Number, trim: true, required: true },
     establishedDate: { type: Date, required: true, trim: true },
     isActive: { type: Boolean, default: true },
     description: { type: String, trim: true, lowercase: true },
