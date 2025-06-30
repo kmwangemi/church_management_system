@@ -7,7 +7,6 @@ import RenderApiError from '@/components/errors/apierror';
 import { MultiSelect } from '@/components/multi-select';
 import Pagination from '@/components/pagination';
 import SearchInput from '@/components/search-input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -53,6 +52,7 @@ import {
   useRegisterDepartment,
 } from '@/lib/hooks/department/use-department';
 import {
+  capitalizeFirstLetter,
   capitalizeFirstLetterOfEachWord,
   formatToNewDate,
   MEETING_DAY_OPTIONS,
@@ -68,7 +68,6 @@ import {
   Loader2,
   MapPin,
   Plus,
-  Search,
   UserCheck,
   Users,
 } from 'lucide-react';
@@ -801,7 +800,7 @@ export default function BranchesPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Department</TableHead>
-                    {/* <TableHead>Branch</TableHead> */}
+                    <TableHead>Branch</TableHead>
                     {/* <TableHead>Leader</TableHead> */}
                     {/* <TableHead>Members</TableHead> */}
                     <TableHead>Meeting Schedule</TableHead>
@@ -813,9 +812,13 @@ export default function BranchesPage() {
                   {departments?.departments.map(dept => (
                     <TableRow key={dept._id}>
                       <TableCell className='font-medium'>
-                        {dept.departmentName}
+                        {capitalizeFirstLetterOfEachWord(dept.departmentName)}
                       </TableCell>
-                      {/* <TableCell>{dept.branch}</TableCell> */}
+                      <TableCell>
+                        {capitalizeFirstLetterOfEachWord(
+                          dept.branchId.branchName,
+                        )}
+                      </TableCell>
                       {/* <TableCell>
                         <div className='flex items-center space-x-2'>
                           <Avatar className='h-6 w-6'>
@@ -832,7 +835,10 @@ export default function BranchesPage() {
                       </TableCell> */}
                       {/* <TableCell>{dept.members}</TableCell> */}
                       <TableCell>
-                        {dept.meetingDay} {dept.meetingTime}
+                        {dept.meetingDay
+                          .map(day => capitalizeFirstLetter(day))
+                          .join(', ')}{' '}
+                        {dept.meetingTime}
                       </TableCell>
                       <TableCell>
                         <Badge variant='secondary'>
@@ -854,6 +860,15 @@ export default function BranchesPage() {
                 </TableBody>
               </Table>
             </CardContent>
+            <div className='mx-6 mb-6'>
+              {departments?.departments != null &&
+                departments?.departments !== undefined &&
+                Array.isArray(departments?.departments) &&
+                departments?.departments.length > 0 &&
+                departments?.pagination?.pages > 1 && (
+                  <Pagination totalPages={departments?.pagination?.pages} />
+                )}
+            </div>
           </Card>
         </TabsContent>
         <TabsContent value='hierarchy' className='space-y-4'>
@@ -873,7 +888,9 @@ export default function BranchesPage() {
                         <Building2 className='h-6 w-6 text-primary' />
                         <div>
                           <h3 className='font-semibold'>
-                            {branch?.branchName}
+                            {capitalizeFirstLetterOfEachWord(
+                              branch?.branchName,
+                            )}
                           </h3>
                           {/* <p className='text-sm text-muted-foreground'>
                             {branch.pastor}
@@ -882,31 +899,35 @@ export default function BranchesPage() {
                       </div>
                       {/* <Badge variant='outline'>{branch.members} members</Badge> */}
                     </div>
-                    {/* <div className='ml-9 space-y-2'>
-                      {departments
+                    <div className='ml-9 space-y-2'>
+                      {departments?.departments
                         .filter(
                           dept =>
-                            dept.branch === branch.branchName ||
-                            dept.branch === 'All Branches',
+                            dept?.branchId?.branchName === branch.branchName ||
+                            dept?.branchId?.branchName === 'All Branches',
                         )
                         .map(dept => (
                           <div
-                            key={dept.id}
+                            key={dept?._id}
                             className='flex items-center justify-between p-2 bg-muted rounded'
                           >
                             <div className='flex items-center space-x-2'>
                               <Users className='h-4 w-4 text-muted-foreground' />
-                              <span className='font-medium'>{dept.name}</span>
-                              <span className='text-sm text-muted-foreground'>
-                                - {dept.leader}
+                              <span className='font-medium'>
+                                {capitalizeFirstLetterOfEachWord(
+                                  dept?.departmentName,
+                                )}
                               </span>
+                              {/* <span className='text-sm text-muted-foreground'>
+                                - {dept.leader}
+                              </span> */}
                             </div>
-                            <Badge variant='secondary'>
+                            {/* <Badge variant='secondary'>
                               {dept.members} members
-                            </Badge>
+                            </Badge> */}
                           </div>
                         ))}
-                    </div> */}
+                    </div>
                   </div>
                 ))}
               </div>

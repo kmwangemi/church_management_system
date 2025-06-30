@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
     const [departments, total] = await Promise.all([
       Department.find(query)
-        // .populate('pastorId', 'firstName lastName')
+        .populate('branchId', 'branchName address country')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),

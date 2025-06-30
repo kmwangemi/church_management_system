@@ -76,7 +76,12 @@ export interface BranchListResponse {
 export interface Department {
   _id: string;
   churchId: string;
-  branchId: string;
+  branchId: {
+    _id: string;
+    branchName: string;
+    address: string;
+    country: string;
+  };
   departmentName: string;
   meetingDay: Array<string>;
   meetingTime: string;
