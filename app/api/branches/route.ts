@@ -80,7 +80,6 @@ export async function POST(request: NextRequest) {
       churchId: user.churchId,
     });
     await branch.save();
-    console.log('branch---->', JSON.stringify(branch));
     return NextResponse.json(branch, { status: 201 });
   } catch (error) {
     console.error('Create branch error:', error);

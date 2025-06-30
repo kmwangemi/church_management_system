@@ -34,6 +34,20 @@ export interface BranchAddResponse {
   __v: number;
 }
 
+export interface DepartmentAddResponse {
+  churchId: string;
+  branchId: string;
+  departmentName: string;
+  meetingDay: Array<string>;
+  meetingTime: string;
+  description: string;
+  isActive: boolean;
+  _id: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
 export interface Pagination {
   page: number;
   limit: number;
@@ -56,5 +70,24 @@ export interface Branch {
 
 export interface BranchListResponse {
   branches: Branch[];
+  pagination: Pagination;
+}
+
+export interface Department {
+  _id: string;
+  churchId: string;
+  branchId: string;
+  departmentName: string;
+  meetingDay: Array<string>;
+  meetingTime: string;
+  description: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface DepartmentListResponse {
+  departments: Department[];
   pagination: Pagination;
 }

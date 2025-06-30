@@ -2,11 +2,11 @@ import mongoose, { type Document, Schema } from 'mongoose';
 
 export interface IDepartment extends Document {
   churchId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
+  leaderId?: mongoose.Types.ObjectId;
   departmentName: string;
   description?: string;
-  leaderId?: mongoose.Types.ObjectId;
-  branchId?: mongoose.Types.ObjectId;
-  meetingDay: string;
+  meetingDay: string[];
   meetingTime: string;
   isActive: boolean;
   budget?: number;
@@ -14,7 +14,16 @@ export interface IDepartment extends Document {
   updatedAt: Date;
 }
 
-const DepartmentSchema = new Schema<IDepartment>(
+interface MeetingDayValidator {
+  validator: (arr: string[]) => boolean;
+  message: string;
+}
+
+interface DepartmentSchemaType extends IDepartment {
+  // Additional fields or overrides if needed
+}
+
+const DepartmentSchema = new Schema<DepartmentSchemaType>(
   {
     churchId: {
       type: Schema.Types.ObjectId,
@@ -22,8 +31,13 @@ const DepartmentSchema = new Schema<IDepartment>(
       required: true,
       trim: true,
     },
+    branchId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Branch',
+      trim: true,
+      required: true,
+    },
     leaderId: { type: Schema.Types.ObjectId, ref: 'Member', trim: true },
-    branchId: { type: Schema.Types.ObjectId, ref: 'Branch', trim: true },
     departmentName: {
       type: String,
       required: true,
@@ -31,10 +45,34 @@ const DepartmentSchema = new Schema<IDepartment>(
       lowercase: true,
     },
     meetingDay: {
-      type: String,
+      type: [String],
       required: true,
-      trim: true,
-      lowercase: true,
+      validate: [
+        {
+          validator: function (arr: string[]): boolean {
+            return arr && arr.length > 0;
+          },
+          message: 'At least one meeting day is required',
+        } as MeetingDayValidator,
+        {
+          validator: function (arr: string[]): boolean {
+            const validDays = [
+              'monday',
+              'tuesday',
+              'wednesday',
+              'thursday',
+              'friday',
+              'saturday',
+              'sunday',
+            ];
+            return (arr as string[]).every((day: string) => validDays.includes(day.toLowerCase()));
+          },
+          message: 'Invalid meeting day provided',
+        } as MeetingDayValidator,
+      ],
+      set: function (arr: string[]): string[] {
+        return arr.map((day: string) => day.toLowerCase().trim());
+      },
     },
     meetingTime: {
       type: String,

@@ -211,13 +211,13 @@ export const CHURCH_DEPARTMENT_OPTIONS = [
   { value: 'leadership', label: 'Leadership' },
 ];
 
-export const CHURCH_BRANCH_OPTIONS = [
-  { value: 'kawangware', label: 'Kawangware' },
-  { value: 'sunton', label: 'Sunton' },
-  { value: 'kibra', label: 'Kibra' },
-  { value: 'kakamega', label: 'Kakamega' },
-  { value: 'busia', label: 'Busia' },
-];
+// export const CHURCH_BRANCH_OPTIONS = [
+//   { value: 'kawangware', label: 'Kawangware' },
+//   { value: 'sunton', label: 'Sunton' },
+//   { value: 'kibra', label: 'Kibra' },
+//   { value: 'kakamega', label: 'Kakamega' },
+//   { value: 'busia', label: 'Busia' },
+// ];
 
 export const MEETING_DAY_OPTIONS = [
   { value: 'sunday', label: 'Sunday' },

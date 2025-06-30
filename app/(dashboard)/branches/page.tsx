@@ -1,6 +1,7 @@
 'use client';
 
 import { CountrySelect } from '@/components/country-list-input';
+import { CustomSelect } from '@/components/custom-select';
 import { DatePicker } from '@/components/date-picker';
 import RenderApiError from '@/components/errors/apierror';
 import { MultiSelect } from '@/components/multi-select';
@@ -34,13 +35,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Table,
   TableBody,
   TableCell,
@@ -54,11 +48,12 @@ import {
   useFetchBranches,
   useRegisterBranch,
 } from '@/lib/hooks/branch/use-branch';
-import { useRegisterDepartment } from '@/lib/hooks/department/use-department';
-import { successToastStyle } from '@/lib/toast-styles';
+import {
+  useFetchDepartments,
+  useRegisterDepartment,
+} from '@/lib/hooks/department/use-department';
 import {
   capitalizeFirstLetterOfEachWord,
-  CHURCH_BRANCH_OPTIONS,
   formatToNewDate,
   MEETING_DAY_OPTIONS,
 } from '@/lib/utils';
@@ -80,7 +75,6 @@ import {
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 
 // const branches = [
 //   {
@@ -115,64 +109,63 @@ import { toast } from 'sonner';
 //   },
 // ];
 
-const departments = [
-  {
-    id: 1,
-    name: 'Choir Ministry',
-    branch: 'Main Campus',
-    leader: 'Mary Johnson',
-    members: 45,
-    meetingDay: 'Wednesday',
-    meetingTime: '7:00 PM',
-    status: 'Active',
-  },
-  {
-    id: 2,
-    name: 'Youth Ministry',
-    branch: 'All Branches',
-    leader: 'David Brown',
-    members: 120,
-    meetingDay: 'Friday',
-    meetingTime: '6:00 PM',
-    status: 'Active',
-  },
-  {
-    id: 3,
-    name: 'Ushering Team',
-    branch: 'Main Campus',
-    leader: 'Robert Davis',
-    members: 32,
-    meetingDay: 'Sunday',
-    meetingTime: '8:00 AM',
-    status: 'Active',
-  },
-  {
-    id: 4,
-    name: "Women's Ministry",
-    branch: 'North Branch',
-    leader: 'Linda Wilson',
-    members: 65,
-    meetingDay: 'Saturday',
-    meetingTime: '10:00 AM',
-    status: 'Active',
-  },
-  {
-    id: 5,
-    name: "Men's Fellowship",
-    branch: 'Main Campus',
-    leader: 'James Miller',
-    members: 78,
-    meetingDay: 'Saturday',
-    meetingTime: '7:00 AM',
-    status: 'Active',
-  },
-];
+// const departments = [
+//   {
+//     id: 1,
+//     name: 'Choir Ministry',
+//     branch: 'Main Campus',
+//     leader: 'Mary Johnson',
+//     members: 45,
+//     meetingDay: 'Wednesday',
+//     meetingTime: '7:00 PM',
+//     status: 'Active',
+//   },
+//   {
+//     id: 2,
+//     name: 'Youth Ministry',
+//     branch: 'All Branches',
+//     leader: 'David Brown',
+//     members: 120,
+//     meetingDay: 'Friday',
+//     meetingTime: '6:00 PM',
+//     status: 'Active',
+//   },
+//   {
+//     id: 3,
+//     name: 'Ushering Team',
+//     branch: 'Main Campus',
+//     leader: 'Robert Davis',
+//     members: 32,
+//     meetingDay: 'Sunday',
+//     meetingTime: '8:00 AM',
+//     status: 'Active',
+//   },
+//   {
+//     id: 4,
+//     name: "Women's Ministry",
+//     branch: 'North Branch',
+//     leader: 'Linda Wilson',
+//     members: 65,
+//     meetingDay: 'Saturday',
+//     meetingTime: '10:00 AM',
+//     status: 'Active',
+//   },
+//   {
+//     id: 5,
+//     name: "Men's Fellowship",
+//     branch: 'Main Campus',
+//     leader: 'James Miller',
+//     members: 78,
+//     meetingDay: 'Saturday',
+//     meetingTime: '7:00 AM',
+//     status: 'Active',
+//   },
+// ];
 
 export default function BranchesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const [searchTerm, setSearchTerm] = useState('');
   const [isBranchDialogOpen, setIsBranchDialogOpen] = useState(false);
   const [isDepartmentDialogOpen, setIsDepartmentDialogOpen] = useState(false);
   const page = Number.parseInt(searchParams.get('page') || '1');
@@ -199,6 +192,13 @@ export default function BranchesPage() {
     error: errorBranch,
   } = useRegisterBranch();
   const {
+    data: departments,
+    isLoading: isLoadingDepartments,
+    isError: isErrorDepartments,
+    error: errorDepartments,
+  } = useFetchDepartments(page, searchQuery);
+  console.log('departments--->', JSON.stringify(departments));
+  const {
     mutateAsync: registerDepartmentMutation,
     isPending: isPendingDepartment,
     isError: isErrorDepartment,
@@ -209,7 +209,7 @@ export default function BranchesPage() {
     defaultValues: {
       branchName: '',
       country: '',
-      capacity: 0,
+      capacity: '',
       address: '',
       // pastorId: '',
       establishedDate: '',
@@ -236,15 +236,9 @@ export default function BranchesPage() {
   };
   const onSubmitDepartmentForm = async (payload: AddDepartmentFormValues) => {
     await registerDepartmentMutation(payload);
-    toast.success('Church department has been successfully created.', {
-      style: successToastStyle,
-    });
     setIsDepartmentDialogOpen(false);
     resetDepartmentForm();
   };
-  const filteredDepartments = departments.filter(dept =>
-    dept.name.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
   const handleCancelBranch = () => {
     setIsBranchDialogOpen(false);
     resetBranchForm();
@@ -256,6 +250,10 @@ export default function BranchesPage() {
   const handleResetQueries = () => {
     resetSearchInput();
     router.push(pathname);
+  };
+  const handleOpenDepartmentDialog = () => {
+    setIsDepartmentDialogOpen(true);
+    handleResetQueries();
   };
   return (
     <div className='space-y-6'>
@@ -335,7 +333,43 @@ export default function BranchesPage() {
                           Capacity <span className='text-red-500'>*</span>
                         </FormLabel>
                         <FormControl>
-                          <Input type='number' placeholder='300' {...field} />
+                          {/* <Input type='number' placeholder='300' {...field} /> */}
+                          <Input
+                            type='text'
+                            inputMode='numeric'
+                            placeholder='Enter capacity number'
+                            {...field}
+                            onChange={e => {
+                              const value = e.target.value.replace(
+                                /[^0-9.]/g,
+                                '',
+                              );
+                              field.onChange(value);
+                            }}
+                            onKeyDown={e => {
+                              // Disable arrow keys
+                              if (
+                                e.key === 'ArrowUp' ||
+                                e.key === 'ArrowDown'
+                              ) {
+                                e.preventDefault();
+                              }
+                              // Allow only numbers, backspace, delete, etc.
+                              const allowedKeys = [
+                                'Backspace',
+                                'Delete',
+                                'Tab',
+                                'ArrowLeft',
+                                'ArrowRight',
+                              ];
+                              if (
+                                !allowedKeys.includes(e.key) &&
+                                !/[0-9.]/.test(e.key)
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -409,10 +443,7 @@ export default function BranchesPage() {
             onOpenChange={setIsDepartmentDialogOpen}
           >
             <DialogTrigger asChild>
-              <Button
-                variant='outline'
-                onClick={() => setIsDepartmentDialogOpen(true)}
-              >
+              <Button variant='outline' onClick={handleOpenDepartmentDialog}>
                 <Plus className='h-4 w-4 mr-2' />
                 Add Department
               </Button>
@@ -446,7 +477,7 @@ export default function BranchesPage() {
                       </FormItem>
                     )}
                   />
-                  <FormField
+                  {/* <FormField
                     control={departmentForm.control}
                     name='branchId'
                     render={({ field }) => (
@@ -465,13 +496,15 @@ export default function BranchesPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent className='max-h-[400px] overflow-y-auto'>
-                            {CHURCH_BRANCH_OPTIONS.map(option => (
+                            {branches?.branches?.map(option => (
                               <SelectItem
-                                key={option.value}
-                                value={option.value}
+                                key={option._id}
+                                value={option._id}
                                 className='cursor-pointer'
                               >
-                                {option.label}
+                                {capitalizeFirstLetterOfEachWord(
+                                  option.branchName,
+                                )}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -479,7 +512,38 @@ export default function BranchesPage() {
                         <FormMessage />
                       </FormItem>
                     )}
+                  /> */}
+
+                  <FormField
+                    control={departmentForm.control}
+                    name='branchId'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Church Branch
+                          <span className='text-red-500'>*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <CustomSelect
+                            options={
+                              branches?.branches?.map(branch => ({
+                                value: branch._id,
+                                label: capitalizeFirstLetterOfEachWord(
+                                  branch.branchName,
+                                ),
+                              })) || []
+                            }
+                            selected={field.value || ''}
+                            onChange={field.onChange}
+                            placeholder='Select church branch'
+                            className='cursor-pointer'
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
+
                   <FormField
                     control={departmentForm.control}
                     name='meetingDay'
@@ -726,35 +790,33 @@ export default function BranchesPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className='flex items-center space-x-2 mb-4'>
-                <div className='relative flex-1'>
-                  <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-                  <Input
-                    placeholder='Search departments...'
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className='pl-10'
-                  />
-                </div>
+              <div className='mb-4'>
+                <SearchInput
+                  register={register}
+                  handleSubmit={handleSubmit}
+                  placeholder='Search departments...'
+                />
               </div>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Department</TableHead>
-                    <TableHead>Branch</TableHead>
-                    <TableHead>Leader</TableHead>
-                    <TableHead>Members</TableHead>
+                    {/* <TableHead>Branch</TableHead> */}
+                    {/* <TableHead>Leader</TableHead> */}
+                    {/* <TableHead>Members</TableHead> */}
                     <TableHead>Meeting Schedule</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredDepartments.map(dept => (
-                    <TableRow key={dept.id}>
-                      <TableCell className='font-medium'>{dept.name}</TableCell>
-                      <TableCell>{dept.branch}</TableCell>
-                      <TableCell>
+                  {departments?.departments.map(dept => (
+                    <TableRow key={dept._id}>
+                      <TableCell className='font-medium'>
+                        {dept.departmentName}
+                      </TableCell>
+                      {/* <TableCell>{dept.branch}</TableCell> */}
+                      {/* <TableCell>
                         <div className='flex items-center space-x-2'>
                           <Avatar className='h-6 w-6'>
                             <AvatarImage src='/placeholder.svg' />
@@ -767,13 +829,15 @@ export default function BranchesPage() {
                           </Avatar>
                           <span>{dept.leader}</span>
                         </div>
-                      </TableCell>
-                      <TableCell>{dept.members}</TableCell>
+                      </TableCell> */}
+                      {/* <TableCell>{dept.members}</TableCell> */}
                       <TableCell>
                         {dept.meetingDay} {dept.meetingTime}
                       </TableCell>
                       <TableCell>
-                        <Badge variant='secondary'>{dept.status}</Badge>
+                        <Badge variant='secondary'>
+                          {dept.isActive === true ? 'Active' : 'Inactive'}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div className='flex space-x-2'>
@@ -818,7 +882,7 @@ export default function BranchesPage() {
                       </div>
                       {/* <Badge variant='outline'>{branch.members} members</Badge> */}
                     </div>
-                    <div className='ml-9 space-y-2'>
+                    {/* <div className='ml-9 space-y-2'>
                       {departments
                         .filter(
                           dept =>
@@ -842,7 +906,7 @@ export default function BranchesPage() {
                             </Badge>
                           </div>
                         ))}
-                    </div>
+                    </div> */}
                   </div>
                 ))}
               </div>

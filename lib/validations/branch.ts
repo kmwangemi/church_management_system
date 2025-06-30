@@ -4,7 +4,7 @@ export const addBranchSchema = z.object({
   branchName: z.string().min(1, 'Branch name is required'),
   country: z.string().min(1, 'Country is required'),
   capacity: z.coerce
-    .number()
+    .string()
     .min(1, 'Capacity minimum should be not less than 1')
     .max(100000, 'Capacity maximum should be not more than 100,000'),
   address: z.string().min(1, 'Physical address is required'),
